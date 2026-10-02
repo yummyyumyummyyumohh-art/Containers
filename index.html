@@ -1,0 +1,1918 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#dce9ee">
+  <title>Windows 11 Desktop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      font-family: 'DM Sans', sans-serif;
+      color: #202a31;
+      background: #c9d7d5;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+      --glass: rgba(246, 249, 249, .86);
+      --line: rgba(35, 54, 64, .12);
+      --accent: #138ada;
+      --shadow: 0 20px 60px rgba(21, 37, 44, .22), 0 2px 8px rgba(21, 37, 44, .08);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; height: 100dvh; overflow: hidden; }
+    button { color: inherit; font: inherit; }
+    button:focus-visible { outline: 2px solid #1888d3; outline-offset: 2px; }
+    .desktop {
+      position: relative;
+      isolation: isolate;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #9cb6ba;
+      background-image: var(--wallpaper-image, url('https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=1600&q=72'));
+      background-position: center 54%;
+      background-size: cover;
+      animation: appear .65s ease-out both;
+    }
+    .desktop::before { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(14, 38, 44, .05), transparent 46%, rgba(11, 30, 33, .12)); }
+    .desktop-icons { position: absolute; inset: 0; pointer-events: none; }
+    .desktop-icon { position: absolute; display: grid; justify-items: center; align-content: start; gap: 5px; width: 78px; min-height: 78px; padding: 7px 4px; border: 1px solid transparent; border-radius: 5px; background: transparent; color: white; text-shadow: 0 1px 4px rgba(0,0,0,.8); cursor: grab; pointer-events: auto; touch-action: none; user-select: none; }
+    .desktop-icon:hover, .desktop-icon:focus-visible { background: rgba(224, 241, 247, .22); border-color: rgba(255,255,255,.28); }
+    .desk-glyph { display: grid; place-items: center; height: 38px; font-size: 31px; filter: drop-shadow(0 2px 2px rgba(0,0,0,.25)); }
+    .desktop-icon span:last-child { font-size: 12px; line-height: 1.2; text-align: center; }
+    .taskbar {
+      position: absolute; z-index: 20; inset: auto 0 0; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+      height: 60px; padding: 0 16px; border-top: 1px solid rgba(255,255,255,.47); background: rgba(239, 244, 244, .83);
+      backdrop-filter: blur(24px) saturate(1.4); -webkit-backdrop-filter: blur(24px) saturate(1.4);
+    }
+    .task-left, .tray, .task-center { display: flex; align-items: center; }
+    .task-left { min-width: 0; }
+    .task-center { justify-content: center; gap: 5px; }
+    .tray { justify-content: flex-end; gap: 13px; font-size: 13px; white-space: nowrap; }
+    .tray-control, .calendar-button { display: flex; align-items: center; gap: 8px; padding: 5px 7px; border: 0; border-radius: 5px; background: transparent; color: inherit; cursor: pointer; }
+    .tray-control:hover, .calendar-button:hover, .weather:hover { background: rgba(255,255,255,.56); }
+    .weather { display: flex; align-items: center; gap: 7px; padding: 5px 8px; border: 0; border-radius: 5px; background: transparent; color: inherit; font: inherit; font-size: 13px; cursor: pointer; }
+    .weather b { font-size: 14px; font-weight: 500; }
+    .task-button { display: grid; place-items: center; position: relative; width: 44px; height: 44px; border: 0; border-radius: 6px; background: transparent; cursor: pointer; transition: background .15s, transform .15s; }
+    .task-button:hover, .task-button.active { background: rgba(255,255,255,.78); }
+    .task-button:active { transform: scale(.93); }
+    .task-button img { width: 23px; height: 23px; object-fit: contain; }
+    .win-logo { width: 23px; height: 23px; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 2px; transform: skewY(-4deg); }
+    .win-logo i { background: var(--accent); }
+    .task-app { font-size: 21px; }
+    .task-button.running::after { content: ''; position: absolute; bottom: 3px; width: 9px; height: 3px; border-radius: 3px; background: var(--accent); }
+    .clock { display: grid; gap: 1px; justify-items: end; font-size: 11px; line-height: 1.3; }
+    .clock time:first-child { font-size: 12px; }
+    .start-panel {
+      position: absolute; z-index: 18; left: 50%; bottom: 70px; width: min(620px, calc(100vw - 24px)); max-height: min(690px, calc(100dvh - 90px));
+      padding: 27px 30px 23px; border: 1px solid rgba(255,255,255,.8); border-radius: 9px; background: rgba(246, 248, 249, .91);
+      box-shadow: var(--shadow); backdrop-filter: blur(35px) saturate(1.35); -webkit-backdrop-filter: blur(35px) saturate(1.35);
+      transform: translate(-50%, 14px) scale(.98); opacity: 0; visibility: hidden; transition: opacity .17s, transform .17s, visibility .17s; overflow: auto;
+    }
+    .start-panel.open { opacity: 1; visibility: visible; transform: translate(-50%, 0) scale(1); }
+    .search { display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 13px; border: 1px solid #9bbcd0; border-bottom: 2px solid var(--accent); border-radius: 4px; background: rgba(255,255,255,.8); color: #48616e; }
+    .search span { font-size: 20px; }
+    .search input { width: 100%; border: 0; outline: 0; background: transparent; color: #26353e; font: inherit; font-size: 13px; }
+    .search input::placeholder { color: #60737d; }
+    .start-heading { display: flex; align-items: center; justify-content: space-between; margin: 25px 4px 13px; }
+    .start-heading h2 { margin: 0; font-family: Manrope, sans-serif; font-size: 14px; font-weight: 700; }
+    .all-apps { padding: 5px 10px; border: 1px solid #d3dfe3; border-radius: 4px; background: rgba(255,255,255,.67); font-size: 11px; cursor: pointer; }
+    .pinned { display: grid; grid-template-columns: repeat(6, minmax(0,1fr)); row-gap: 13px; }
+    .app-shortcut { display: grid; justify-items: center; gap: 7px; min-width: 0; padding: 8px 3px; border: 0; border-radius: 5px; background: transparent; cursor: pointer; }
+    .app-shortcut:hover { background: rgba(211,229,238,.63); }
+    .app-shortcut span:last-child { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 10px; }
+    .app-icon { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 7px; background: #e2eff8; font-size: 20px; }
+    .app-icon.folder { background: #e8eef1; }
+    .app-icon.edge { background: #dff2ed; }
+    .app-icon.settings { background: #ebeaed; }
+    .app-icon.store { background: #e4edf8; }
+    .app-icon.photos { background: #f8efdf; }
+    .app-icon.mail { background: #e1edf7; }
+    .app-icon.notes { background: #f9efc9; }
+    .app-icon.calc { background: #e5e8e9; }
+    .app-icon.terminal { background: #e5e7e9; }
+    .recommended { display: grid; grid-template-columns: 1fr 1fr; column-gap: 17px; row-gap: 5px; }
+    .recent { display: flex; align-items: center; gap: 11px; min-width: 0; padding: 8px 5px; border: 0; border-radius: 5px; background: transparent; text-align: left; cursor: pointer; }
+    .recent:hover { background: rgba(211,229,238,.63); }
+    .recent-icon { display: grid; place-items: center; flex: 0 0 31px; height: 34px; border-radius: 4px; background: #e8f0f3; font-size: 18px; }
+    .recent-copy { display: grid; min-width: 0; gap: 3px; }
+    .recent-copy b, .recent-copy small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .recent-copy b { font-size: 11px; font-weight: 500; }
+    .recent-copy small { color: #65757d; font-size: 9px; }
+    .start-footer { display: flex; align-items: center; justify-content: space-between; margin: 23px -30px -23px; padding: 12px 30px; border-top: 1px solid rgba(76,97,109,.12); background: rgba(223,232,235,.6); }
+    .profile { display: flex; align-items: center; gap: 9px; font-size: 11px; }
+    .avatar { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: #d8e7e9; font-size: 16px; }
+    .power { width: 34px; height: 32px; border: 0; border-radius: 4px; background: transparent; font-size: 18px; cursor: pointer; }
+    .power:hover { background: rgba(255,255,255,.75); }
+    .window {
+      position: absolute; z-index: 5; top: 12%; left: 21%; display: flex; flex-direction: column; width: min(780px, calc(100vw - 36px)); height: min(530px, calc(100dvh - 115px)); min-height: 300px;
+      overflow: hidden; border: 1px solid rgba(255,255,255,.82); border-radius: 7px; background: #f8fafb; box-shadow: var(--shadow); animation: window-in .2s ease-out both;
+    }
+    .window.maximized { inset: 8px 8px 68px !important; width: auto !important; height: auto !important; }
+    .window.fullscreen { inset: 0 !important; z-index: 30 !important; width: 100% !important; height: 100% !important; min-height: 0; border: 0; border-radius: 0; }
+    .titlebar { display: flex; align-items: center; flex: 0 0 42px; min-width: 0; padding-left: 14px; background: #f7f9fa; touch-action: none; cursor: grab; user-select: none; }
+    .titlebar:active { cursor: grabbing; }
+    .window-title { display: flex; align-items: center; gap: 9px; min-width: 0; font-size: 11px; }
+    .window-title span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .app-menu-toggle { width: 30px; height: 30px; flex: 0 0 auto; border: 0; border-radius: 4px; background: transparent; color: inherit; font-size: 17px; cursor: pointer; }
+    .app-menu-toggle:hover, .app-menu-toggle[aria-expanded="true"] { background: rgba(128,150,160,.2); }
+    .window-controls { display: flex; align-self: stretch; margin-left: auto; }
+    .window-controls button { width: 45px; border: 0; background: transparent; font-size: 14px; cursor: pointer; }
+    .window-controls button:hover { background: #e8edef; }
+    .window-controls button.close:hover { background: #d83b36; color: white; }
+    .app-dropdown { position: absolute; z-index: 40; top: 42px; left: 8px; display: grid; width: 190px; padding: 5px; border: 1px solid #dce4e7; border-radius: 5px; background: #fbfcfc; color: #26353e; box-shadow: var(--shadow); }
+    .app-dropdown button { padding: 8px 9px; border: 0; border-radius: 3px; background: transparent; color: inherit; font-size: 11px; text-align: left; cursor: pointer; }
+    .app-dropdown button:hover { background: #e8eff2; }
+    .app-dropdown hr { width: 100%; margin: 4px 0; border: 0; border-top: 1px solid #e1e7e9; }
+    .window-body { flex: 1; min-height: 0; overflow: auto; }
+    .embedded-site-frame { display: block; width: 100%; height: 100%; border: 0; background: #fff; }
+    .file-layout { display: grid; grid-template-columns: 175px 1fr; height: 100%; }
+    .file-sidebar { padding: 12px 8px; border-right: 1px solid #e6ebed; background: #f4f7f8; }
+    .file-nav { display: flex; gap: 9px; align-items: center; width: 100%; padding: 9px 10px; border: 0; border-radius: 4px; background: transparent; color: #3b4c55; font-size: 11px; text-align: left; cursor: pointer; }
+    .file-nav.selected, .file-nav:hover { background: #e4edf1; }
+    .file-main { padding: 18px 20px; }
+    .file-toolbar { display: flex; align-items: center; gap: 7px; margin-bottom: 12px; }
+    .file-toolbar button { padding: 7px 9px; border: 1px solid #d8e1e4; border-radius: 4px; background: #fff; font-size: 10px; cursor: pointer; }
+    .file-toolbar button:hover { border-color: var(--accent); }
+    .file-toolbar input[type="search"] { flex: 1; min-width: 80px; padding: 7px 9px; border: 1px solid #d8e1e4; border-radius: 4px; font: inherit; font-size: 10px; }
+    .address { margin-bottom: 22px; padding: 8px 11px; border: 1px solid #e0e7ea; border-radius: 4px; color: #42535a; font-size: 11px; }
+    .file-main h3 { margin: 0 0 13px; font-family: Manrope, sans-serif; font-size: 14px; }
+    .file-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px,1fr)); gap: 8px; }
+    .file-tile { display: grid; justify-items: center; gap: 8px; min-height: 100px; padding: 14px 5px; border: 1px solid transparent; border-radius: 4px; background: transparent; cursor: pointer; }
+    .file-tile:hover, .file-tile.selected { border-color: #d5e4eb; background: #edf5f7; }
+    .file-tile .file-emoji { font-size: 32px; }
+    .file-tile span:last-child { font-size: 10px; }
+    .file-empty { padding: 24px 8px; color: #78888f; font-size: 11px; text-align: center; }
+    .file-editor { display: flex; flex-direction: column; height: calc(100% - 52px); gap: 9px; }
+    .file-editor textarea { flex: 1; min-height: 100px; padding: 12px; border: 1px solid #d8e1e4; border-radius: 4px; resize: none; font: 12px/1.6 monospace; }
+    .file-editor-actions { display: flex; gap: 7px; }
+    .notepad { display: flex; flex-direction: column; height: 100%; background: #fff; }
+    .notepad-toolbar { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 4px 10px; border-bottom: 1px solid #e4eaec; }
+    .notepad-toolbar button { padding: 6px 9px; border: 1px solid #d8e1e4; border-radius: 4px; background: transparent; font-size: 10px; cursor: pointer; }
+    .notepad-toolbar button:hover { border-color: var(--accent); }
+    .notepad-status { margin-left: auto; color: #718189; font-size: 10px; }
+    .notepad textarea { flex: 1; width: 100%; min-height: 0; resize: none; border: 0; outline: 0; padding: 18px 22px; background: transparent; color: #26353e; font: 13px/1.65 'DM Sans',sans-serif; }
+    .browser-page { height: 100%; display: flex; flex-direction: column; background: #fff; }
+    .chrome-tabstrip { display: flex; align-items: flex-end; gap: 5px; min-height: 37px; padding: 5px 8px 0; background: #e7ecef; }
+    .chrome-tablist { display: flex; align-items: flex-end; flex: 1; min-width: 0; gap: 4px; overflow: auto hidden; }
+    .chrome-tab { display: flex; align-items: center; gap: 4px; min-width: 86px; max-width: 190px; height: 30px; padding: 0 5px 0 10px; border: 0; border-radius: 6px 6px 0 0; background: #d4dde1; color: #34464f; }
+    .chrome-tab[aria-selected="true"] { background: #fff; color: #202a31; }
+    .chrome-tab-select { flex: 1; min-width: 0; overflow: hidden; border: 0; background: transparent; color: inherit; font: inherit; font-size: 10px; text-align: left; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+    .chrome-tab-close, .chrome-new-tab { display: grid; place-items: center; flex: 0 0 23px; width: 23px; height: 23px; border: 0; border-radius: 50%; background: transparent; color: inherit; cursor: pointer; }
+    .chrome-tab-close:hover, .chrome-new-tab:hover { background: rgba(65,83,92,.16); }
+    .chrome-bookmarks { display: flex; gap: 7px; overflow: auto hidden; min-height: 33px; padding: 4px 10px; border-bottom: 1px solid #e5ebed; background: #fff; }
+    .chrome-bookmark { flex: 0 0 auto; max-width: 170px; overflow: hidden; padding: 4px 8px; border: 0; border-radius: 4px; background: transparent; color: #34464f; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+    .chrome-bookmark:hover { background: #eef2f3; }
+    .browser-toolbar { display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 14px; border-bottom: 1px solid #e5ebed; }
+    .browser-toolbar button { border: 0; border-radius: 4px; background: transparent; color: #536770; cursor: pointer; }
+    .browser-toolbar button:disabled { opacity: .4; cursor: default; }
+    .browser-frame { display: block; flex: 1; width: 100%; min-height: 0; border: 0; background: #fff; }
+    .browser-address-form { display: flex; align-items: center; flex: 1; min-width: 0; padding: 0 10px; border-radius: 20px; background: #eff3f4; color: #5a6970; }
+    .browser-address { width: 100%; min-width: 0; padding: 8px 5px; border: 0; outline: 0; background: transparent; color: #40515a; font: inherit; font-size: 11px; }
+    .web-content { display: grid; place-content: center; flex: 1; padding: 24px; text-align: center; }
+    .web-content .web-mark { margin-bottom: 12px; color: #1686d3; font-size: 38px; }
+    .web-content h2 { margin: 0 0 6px; font-family: Manrope,sans-serif; font-size: 25px; }
+    .web-content p { margin: 0 0 20px; color: #6b7a81; font-size: 12px; }
+    .web-search-form { display: flex; align-items: center; width: min(450px, 76vw); padding-right: 6px; border: 1px solid #d7e0e3; border-radius: 24px; background: #fff; box-shadow: 0 3px 14px rgba(35,60,70,.09); }
+    .web-search { flex: 1; min-width: 0; padding: 13px 17px; border: 0; outline: 0; border-radius: 24px; background: transparent; font: inherit; font-size: 12px; }
+    .web-search-form button { display: grid; place-items: center; width: 34px; height: 34px; border: 0; border-radius: 50%; background: #e8f2f5; color: #226478; font-size: 20px; cursor: pointer; }
+    .web-search-form button:hover { background: #d7e9ee; }
+    .web-content.search-results { display: block; overflow: auto; text-align: left; }
+    .search-results-heading { padding: 12px 4px 18px; border-bottom: 1px solid #e5ebed; }
+    .search-results-heading h2 { margin: 0 0 5px; font: 700 20px Manrope,sans-serif; }
+    .search-results-heading p { margin: 0; color: #687981; font-size: 11px; overflow-wrap: anywhere; }
+    .search-result { padding: 15px 4px; border-bottom: 1px solid #e9eef0; }
+    .search-result h3 { margin: 0 0 5px; color: #236b88; font: 600 13px Manrope,sans-serif; }
+    .search-result-title { padding: 0; border: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+    .search-result-title:hover { text-decoration: underline; }
+    .search-result p { margin: 0; color: #4b5c64; font-size: 11px; line-height: 1.6; overflow-wrap: anywhere; }
+    .search-result small { display: block; margin-top: 6px; color: #77868c; font-size: 10px; }
+    .search-empty { padding: 20px 4px; color: #65757d; font-size: 12px; }
+    .chrome-internal { display: block; overflow: auto; text-align: left; }
+    .chrome-internal-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 4px 16px; border-bottom: 1px solid #e5ebed; }
+    .chrome-internal-heading h2 { margin: 0; font: 700 20px Manrope,sans-serif; }
+    .chrome-internal-heading button, .chrome-internal-row button { padding: 6px 9px; border: 1px solid #d8e1e4; border-radius: 4px; background: transparent; font: inherit; font-size: 10px; cursor: pointer; }
+    .chrome-internal-row { display: flex; align-items: center; gap: 10px; padding: 12px 4px; border-bottom: 1px solid #e9eef0; font-size: 11px; }
+    .chrome-internal-row button:first-child { flex: 1; overflow: hidden; border: 0; text-align: left; text-overflow: ellipsis; white-space: nowrap; }
+    .chrome-internal-empty { padding: 18px 4px; color: #718189; font-size: 11px; }
+    .settings { height: 100%; overflow: auto; background: #f8fafb; }
+    .settings-content { max-width: 760px; margin: 0 auto; padding: 24px clamp(16px, 4vw, 36px); }
+    .settings-content h2 { margin: 0 0 6px; font: 700 20px Manrope,sans-serif; }
+    .settings-intro { margin: 0 0 22px; color: #687981; font-size: 11px; }
+    .settings-section-title { margin: 21px 0 10px; font: 700 13px Manrope,sans-serif; }
+    .wallpaper-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .wallpaper-choice { display: grid; gap: 6px; padding: 5px; border: 1px solid #dce4e7; border-radius: 5px; background: #fff; text-align: left; cursor: pointer; }
+    .wallpaper-choice[aria-pressed="true"] { border: 2px solid var(--accent); padding: 4px; }
+    .wallpaper-preview { display: block; width: 100%; aspect-ratio: 16 / 7; border-radius: 3px; background-position: center; background-size: cover; }
+    .wallpaper-choice span:last-child { padding: 2px 4px 4px; font-size: 10px; }
+    .wallpaper-custom { display: flex; gap: 7px; margin-top: 10px; }
+    .wallpaper-custom input { flex: 1; min-width: 0; padding: 8px 9px; border: 1px solid #d5dfe3; border-radius: 4px; background: #fff; font: inherit; font-size: 10px; }
+    .wallpaper-custom button { padding: 7px 10px; border: 1px solid #d5dfe3; border-radius: 4px; background: #fff; font-size: 10px; cursor: pointer; }
+    .wallpaper-custom button:hover { border-color: var(--accent); }
+    .accent-choices { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+    .accent-swatch { width: 27px; height: 27px; border: 2px solid #fff; border-radius: 50%; box-shadow: 0 0 0 1px #bdc9ce; cursor: pointer; }
+    .accent-swatch[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--accent); }
+    .custom-color { width: 34px; height: 34px; padding: 2px; border: 1px solid #cbd6db; border-radius: 5px; background: white; cursor: pointer; }
+    .setting-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid #e6ebed; font-size: 12px; }
+    .setting-row small { display: block; margin-top: 4px; color: #75858c; font-size: 10px; }
+    .switch { position: relative; width: 34px; height: 19px; flex: 0 0 auto; appearance: none; border-radius: 12px; background: #b8c4c8; cursor: pointer; transition: background .15s; }
+    .switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 13px; height: 13px; border-radius: 50%; background: white; transition: transform .15s; }
+    .switch:checked { background: var(--accent); }
+    .switch:checked::after { transform: translateX(15px); }
+    .about { display: grid; place-content: center; height: 100%; padding: 30px; color: #5c6b72; text-align: center; }
+    .about strong { margin: 8px 0; color: #25343b; font: 700 19px Manrope,sans-serif; }
+    .about p { max-width: 350px; font-size: 12px; line-height: 1.65; }
+    .cloud-gaming { display: flex; flex-direction: column; height: 100%; overflow: hidden; background: #f4f7f8; }
+    .cloud-header { padding: 20px 22px 14px; }
+    .cloud-header h2 { margin: 0 0 5px; font: 700 19px Manrope,sans-serif; }
+    .cloud-header p { margin: 0; color: #65757d; font-size: 11px; }
+    .cloud-toolbar { display: flex; align-items: center; gap: 9px; min-height: 46px; padding: 6px 18px; border-top: 1px solid #e1e8eb; border-bottom: 1px solid #e1e8eb; background: #fff; }
+    .cloud-toolbar button { padding: 6px 9px; border: 1px solid #d5dfe3; border-radius: 4px; background: #fff; font-size: 10px; cursor: pointer; }
+    .cloud-toolbar button:hover { border-color: var(--accent); }
+    .cloud-status { margin-left: auto; color: #65757d; font-size: 10px; }
+    .cloud-services { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; overflow: auto; padding: 18px; }
+    .cloud-service { display: flex; align-items: center; gap: 12px; min-height: 78px; padding: 13px; border: 1px solid #dce4e7; border-radius: 5px; background: #fff; text-align: left; cursor: pointer; }
+    .cloud-service:hover { border-color: var(--accent); box-shadow: 0 4px 15px rgba(30,60,70,.1); }
+    .cloud-service-icon { display: grid; place-items: center; flex: 0 0 38px; height: 38px; border-radius: 6px; background: #e9f0f3; font-size: 21px; }
+    .cloud-service-copy { display: grid; gap: 4px; }
+    .cloud-service-copy strong { font-size: 11px; }
+    .cloud-service-copy small { color: #718189; font-size: 9px; }
+    .cloud-notice { display: grid; place-content: center; flex: 1; padding: 24px; color: #65757d; font-size: 12px; line-height: 1.6; text-align: center; }
+    .cloud-notice strong { display: block; margin-bottom: 7px; color: #25343b; font: 700 15px Manrope,sans-serif; }
+    .cloud-player { flex: 1; width: 100%; min-height: 0; border: 0; background: #101619; }
+    .desktop.dark-mode .cloud-gaming { background: #1e282e; color: #e5edf0; }
+    .desktop.dark-mode .cloud-header p, .desktop.dark-mode .cloud-status { color: #a8b7bd; }
+    .desktop.dark-mode .cloud-toolbar, .desktop.dark-mode .cloud-toolbar button, .desktop.dark-mode .cloud-service { background: #29363d; border-color: #43545c; color: #e5edf0; }
+    .desktop.dark-mode .cloud-service-icon { background: #35444b; }
+    .desktop.dark-mode .cloud-service-copy small { color: #a8b7bd; }
+    .desktop.dark-mode .cloud-notice, .desktop.dark-mode .cloud-notice strong { color: #bdcbd0; }
+    .desktop.dark-mode { color: #e5edf0; color-scheme: dark; }
+    .desktop.dark-mode .taskbar { background: rgba(25, 34, 39, .88); border-color: rgba(255,255,255,.13); }
+    .desktop.dark-mode .task-button:hover, .desktop.dark-mode .task-button.active { background: rgba(255,255,255,.12); }
+    .desktop.dark-mode .start-panel, .desktop.dark-mode .context-menu, .desktop.dark-mode .notification { background: rgba(31, 41, 47, .95); border-color: rgba(255,255,255,.16); color: #e5edf0; }
+    .desktop.dark-mode .search { background: #29363d; border-color: #536a75; color: #dce6e9; }
+    .desktop.dark-mode .search input { color: #f3f7f8; }
+    .desktop.dark-mode .start-heading h2, .desktop.dark-mode .recent-copy b { color: #e5edf0; }
+    .desktop.dark-mode .all-apps, .desktop.dark-mode .start-footer { background: rgba(12,20,24,.45); border-color: rgba(255,255,255,.12); color: #e5edf0; }
+    .desktop.dark-mode .recent-copy small { color: #a8b7bd; }
+    .desktop.dark-mode .window { background: #1e282e; border-color: rgba(255,255,255,.2); color: #e5edf0; }
+    .desktop.dark-mode .titlebar { background: #222e34; }
+    .desktop.dark-mode .window-controls button { color: #e5edf0; }
+    .desktop.dark-mode .window-controls button:hover { background: #35434a; }
+    .desktop.dark-mode .app-dropdown { border-color: #43545c; background: #29363d; color: #e5edf0; }
+    .desktop.dark-mode .app-dropdown button:hover { background: #35444b; }
+    .desktop.dark-mode .app-dropdown hr { border-color: #43545c; }
+    .desktop.dark-mode .settings { background: #1e282e; }
+    .desktop.dark-mode .settings-intro, .desktop.dark-mode .setting-row small { color: #a8b7bd; }
+    .desktop.dark-mode .setting-row { border-color: #39474e; }
+    .desktop.dark-mode .wallpaper-choice, .desktop.dark-mode .wallpaper-custom input, .desktop.dark-mode .wallpaper-custom button { background: #29363d; border-color: #43545c; color: #e5edf0; }
+    .desktop.dark-mode .file-layout, .desktop.dark-mode .file-main, .desktop.dark-mode .browser-page, .desktop.dark-mode .web-content { background: #1e282e; color: #e5edf0; }
+    .desktop.dark-mode .file-sidebar, .desktop.dark-mode .settings-nav { background: #222e34; border-color: #39474e; }
+    .desktop.dark-mode .file-nav { color: #d6e0e3; }
+    .desktop.dark-mode .file-nav.selected, .desktop.dark-mode .file-nav:hover, .desktop.dark-mode .file-tile:hover { background: #35444b; }
+    .desktop.dark-mode .file-toolbar button, .desktop.dark-mode .file-toolbar input, .desktop.dark-mode .file-editor textarea { background: #29363d; border-color: #43545c; color: #e5edf0; }
+    .desktop.dark-mode .notepad { background: #1e282e; }
+    .desktop.dark-mode .notepad-toolbar { border-color: #39474e; }
+    .desktop.dark-mode .notepad-toolbar button { color: #e5edf0; border-color: #43545c; }
+    .desktop.dark-mode .notepad textarea { color: #e5edf0; }
+    .desktop.dark-mode .address, .desktop.dark-mode .browser-address-form, .desktop.dark-mode .recent-icon { background: #29363d; border-color: #43545c; color: #d6e0e3; }
+    .desktop.dark-mode .browser-toolbar { border-color: #39474e; }
+    .desktop.dark-mode .chrome-tabstrip { background: #151e23; }
+    .desktop.dark-mode .chrome-tab { background: #29363d; color: #bdcbd0; }
+    .desktop.dark-mode .chrome-tab[aria-selected="true"] { background: #1e282e; color: #eff5f6; }
+    .desktop.dark-mode .chrome-bookmarks { background: #1e282e; border-color: #39474e; }
+    .desktop.dark-mode .chrome-bookmark { color: #d6e0e3; }
+    .desktop.dark-mode .browser-toolbar button, .desktop.dark-mode .web-content p, .desktop.dark-mode .about { color: #bdcbd0; }
+    .desktop.dark-mode .browser-address { color: #eff5f6; }
+    .desktop.dark-mode .web-search-form { background: #29363d; border-color: #43545c; }
+    .desktop.dark-mode .web-search { color: #eff5f6; }
+    .desktop.dark-mode .search-results-heading, .desktop.dark-mode .search-result { border-color: #39474e; }
+    .desktop.dark-mode .search-result p, .desktop.dark-mode .search-empty { color: #c1cdd1; }
+    .desktop.dark-mode .about strong { color: #eff5f6; }
+    .desktop.dark-mode .window textarea { color: #e5edf0 !important; background: #1e282e !important; }
+    .desktop.dark-mode .window-body [style*="background:#f3f6f7"] { background: #1e282e !important; }
+    .desktop.performance-mode *, .desktop.performance-mode *::before, .desktop.performance-mode *::after { animation-duration: 0s !important; transition-duration: 0s !important; scroll-behavior: auto !important; }
+    .desktop.performance-mode .taskbar, .desktop.performance-mode .start-panel, .desktop.performance-mode .system-flyout, .desktop.performance-mode .context-menu { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+    .desktop.performance-mode .window { animation: none !important; box-shadow: 0 5px 18px rgba(21,37,44,.18); }
+    .desktop.dark-mode .tray-control:hover, .desktop.dark-mode .calendar-button:hover, .desktop.dark-mode .weather:hover { background: rgba(255,255,255,.12); }
+    .desktop.dark-mode .system-flyout { border-color: rgba(255,255,255,.16); background: rgba(31,41,47,.96); color: #e5edf0; }
+    .desktop.night-light::after { content: ''; position: absolute; z-index: 16; inset: 0; background: rgba(255, 166, 86, .16); mix-blend-mode: multiply; pointer-events: none; }
+    .context-menu { position: absolute; z-index: 17; display: grid; min-width: 175px; padding: 5px; border: 1px solid rgba(255,255,255,.8); border-radius: 6px; background: rgba(249,251,251,.94); box-shadow: var(--shadow); backdrop-filter: blur(24px); }
+    .context-menu button { padding: 8px; border: 0; border-radius: 3px; background: transparent; text-align: left; font-size: 11px; cursor: pointer; }
+    .context-menu button:hover { background: #e5eff2; }
+    .notification { position: absolute; z-index: 25; right: 16px; bottom: 73px; max-width: 290px; padding: 12px 16px; border: 1px solid rgba(255,255,255,.8); border-radius: 7px; background: rgba(247,250,250,.93); box-shadow: var(--shadow); font-size: 12px; animation: window-in .2s ease-out both; }
+    .system-flyout { position: absolute; z-index: 19; right: 12px; bottom: 70px; width: min(340px, calc(100vw - 24px)); padding: 18px; border: 1px solid rgba(255,255,255,.8); border-radius: 8px; background: rgba(246,249,249,.96); box-shadow: var(--shadow); backdrop-filter: blur(28px); }
+    .flyout-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; font: 700 14px Manrope,sans-serif; }
+    .flyout-heading button { width: 28px; height: 28px; border: 0; border-radius: 4px; background: transparent; cursor: pointer; }
+    .flyout-heading button:hover { background: rgba(128,150,160,.2); }
+    .network-status { display: flex; align-items: center; gap: 10px; padding: 11px; border: 1px solid var(--line); border-radius: 5px; background: rgba(255,255,255,.4); }
+    .network-status strong, .network-status small { display: block; }
+    .network-status strong { font-size: 11px; }
+    .network-status small { margin-top: 3px; color: #718189; font-size: 10px; }
+    .quick-setting { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 2px; border-bottom: 1px solid var(--line); font-size: 11px; }
+    .quick-setting input[type="range"] { width: 145px; accent-color: var(--accent); }
+    .calendar-month { font-size: 12px; }
+    .calendar-weekdays, .calendar-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; text-align: center; }
+    .calendar-weekdays { margin-bottom: 5px; color: #72828a; font-size: 10px; }
+    .calendar-day, .calendar-blank { display: grid; place-items: center; aspect-ratio: 1; border: 0; border-radius: 50%; background: transparent; font-size: 10px; }
+    .calendar-day { cursor: pointer; }
+    .calendar-day:hover { background: rgba(128,150,160,.22); }
+    .calendar-day.selected { background: var(--accent); color: white; }
+    .calendar-selection { margin: 12px 0 0; color: #718189; font-size: 10px; }
+    .hidden { display: none !important; }
+    @keyframes appear { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes window-in { from { opacity: 0; transform: translateY(8px) scale(.99); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    @media (max-width: 640px) {
+      .taskbar { grid-template-columns: 1fr auto 1fr; height: 54px; padding: 0 8px; }
+      .weather { display: none; }
+      .task-center { gap: 0; }
+      .task-button { width: 38px; height: 40px; }
+      .tray { gap: 7px; }
+      .tray .tray-extra { display: none; }
+      .system-flyout { right: 8px; bottom: 60px; }
+      .start-panel { bottom: 60px; padding: 19px 17px 18px; }
+      .pinned { grid-template-columns: repeat(4, minmax(0,1fr)); }
+      .start-footer { margin: 19px -17px -18px; padding: 11px 17px; }
+      .recommended { grid-template-columns: 1fr; }
+      .window { top: 7%; left: 10px; width: calc(100vw - 20px); height: calc(100dvh - 75px); }
+      .file-layout { grid-template-columns: 105px 1fr; }
+      .file-sidebar { padding: 9px 4px; }
+      .file-nav { padding: 8px 6px; font-size: 10px; }
+      .file-main { padding: 13px 10px; }
+      .settings-content { padding: 18px 13px; }
+      .cloud-services { grid-template-columns: 1fr; padding: 12px; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <main class="desktop" id="desktop" aria-label="Windows desktop">
+    <div class="desktop-icons" aria-label="Desktop shortcuts">
+      <button class="desktop-icon" data-icon-id="recycle" data-open="files"><span class="desk-glyph">🗑️</span><span>Recycle Bin</span></button>
+      <button class="desktop-icon" data-icon-id="files" data-open="files"><span class="desk-glyph">📁</span><span>Personal files</span></button>
+      <button class="desktop-icon" data-icon-id="edge" data-open="browser"><span class="desk-glyph">🌐</span><span>Microsoft Edge</span></button>
+      <button class="desktop-icon" data-icon-id="chrome" data-open="chrome"><span class="desk-glyph">🌐</span><span>Google Chrome</span></button>
+      <button class="desktop-icon" data-icon-id="serumos" data-open="serumos"><span class="desk-glyph">🖥️</span><span>SerumOS</span></button>
+      <button class="desktop-icon" data-icon-id="plutonium" data-open="plutonium"><span class="desk-glyph">☢️</span><span>Plutonium</span></button>
+      <button class="desktop-icon" data-icon-id="cloud-gaming" data-open="cloudGaming"><span class="desk-glyph">🎮</span><span>Cloud Gaming</span></button>
+    </div>
+
+    <section class="start-panel" id="startPanel" aria-label="Start menu" aria-hidden="true">
+      <label class="search"><span aria-hidden="true">⌕</span><input id="startSearch" type="search" placeholder="Search apps or the web" autocomplete="off"></label>
+      <div class="start-heading"><h2>Pinned</h2><button class="all-apps" id="allApps">All apps&nbsp; ›</button></div>
+      <div class="pinned" id="pinnedApps">
+        <button class="app-shortcut" data-open="browser"><span class="app-icon edge">🌐</span><span>Edge</span></button>
+        <button class="app-shortcut" data-open="chrome"><span class="app-icon edge">🌐</span><span>Chrome</span></button>
+        <button class="app-shortcut" data-open="files"><span class="app-icon folder">📁</span><span>File Explorer</span></button>
+        <button class="app-shortcut" data-open="settings"><span class="app-icon settings">⚙️</span><span>Settings</span></button>
+        <button class="app-shortcut" data-open="store"><span class="app-icon store">▦</span><span>Microsoft Store</span></button>
+        <button class="app-shortcut" data-open="photos"><span class="app-icon photos">🌄</span><span>Photos</span></button>
+        <button class="app-shortcut" data-open="mail"><span class="app-icon mail">✉️</span><span>Mail</span></button>
+        <button class="app-shortcut" data-open="notes"><span class="app-icon notes">📝</span><span>Notepad</span></button>
+        <button class="app-shortcut" data-open="calculator"><span class="app-icon calc">▦</span><span>Calculator</span></button>
+        <button class="app-shortcut" data-open="terminal"><span class="app-icon terminal">›_</span><span>Terminal</span></button>
+        <button class="app-shortcut" data-open="about"><span class="app-icon">ⓘ</span><span>About</span></button>
+        <button class="app-shortcut" data-open="serumos"><span class="app-icon">🖥️</span><span>SerumOS</span></button>
+        <button class="app-shortcut" data-open="plutonium"><span class="app-icon">☢️</span><span>Plutonium</span></button>
+        <button class="app-shortcut" data-open="cloudGaming"><span class="app-icon">🎮</span><span>Cloud Gaming</span></button>
+      </div>
+      <div class="start-heading"><h2>Recommended</h2><button class="all-apps" id="moreRecent">More&nbsp; ›</button></div>
+      <div class="recommended">
+        <button class="recent" data-open="files"><span class="recent-icon">📄</span><span class="recent-copy"><b>Getting started</b><small>Recently opened</small></span></button>
+        <button class="recent" data-open="photos"><span class="recent-icon">🖼️</span><span class="recent-copy"><b>Summer photos</b><small>1 hour ago</small></span></button>
+        <button class="recent" data-open="notes"><span class="recent-icon">📝</span><span class="recent-copy"><b>Meeting notes</b><small>Yesterday</small></span></button>
+        <button class="recent" data-open="files"><span class="recent-icon">📁</span><span class="recent-copy"><b>Documents</b><small>Recently opened</small></span></button>
+      </div>
+      <footer class="start-footer"><div class="profile"><span class="avatar">🙂</span><span>Alex Morgan</span></div><button class="power" id="powerButton" aria-label="Power options" title="Power options">⏻</button></footer>
+    </section>
+
+    <div id="windows"></div>
+    <div id="contextMenu" class="context-menu hidden" role="menu"><button data-action="refresh">⟳ &nbsp;Refresh</button><button data-action="personalize">▧ &nbsp;Personalize</button><button data-action="about">ⓘ &nbsp;About this desktop</button></div>
+    <section id="quickSettingsPanel" class="system-flyout hidden" aria-label="Quick settings"><header class="flyout-heading"><span>Quick settings</span><button id="quickSettingsClose" aria-label="Close">×</button></header><div class="network-status"><span aria-hidden="true">◉</span><span><strong id="networkState">Network</strong><small id="networkDetails">Checking connection…</small></span></div><label class="quick-setting"><span>Brightness</span><input id="brightnessRange" type="range" min="35" max="100" value="100" aria-label="Screen brightness"></label><label class="quick-setting"><span>Night light</span><input id="nightLightQuick" class="switch" type="checkbox" aria-label="Night light"></label></section>
+    <section id="calendarPanel" class="system-flyout hidden" aria-label="Calendar"><header class="flyout-heading"><button id="calendarPrevious" aria-label="Previous month">‹</button><span id="calendarMonth" class="calendar-month"></span><button id="calendarNext" aria-label="Next month">›</button></header><div class="calendar-weekdays" aria-hidden="true"><span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span></div><div id="calendarDays" class="calendar-days"></div><p id="calendarSelection" class="calendar-selection"></p></section>
+    <div id="notification" class="notification hidden" role="status"></div>
+
+    <footer class="taskbar">
+      <div class="task-left"><button class="weather" id="weatherButton" title="Search weather"><span>🌤️</span><b>23°C</b><span class="tray-extra">Partly cloudy</span></button></div>
+      <nav class="task-center" aria-label="Taskbar">
+        <button class="task-button" id="startButton" aria-label="Start" title="Start"><span class="win-logo"><i></i><i></i><i></i><i></i></span></button>
+        <button class="task-button" id="taskSearch" aria-label="Search apps and web" title="Search (Ctrl+K)"><span style="font-size:22px">⌕</span></button>
+        <button class="task-button" data-open="files" aria-label="File Explorer" title="File Explorer"><span class="task-app">📁</span></button>
+        <button class="task-button" data-open="browser" aria-label="Edge" title="Microsoft Edge"><span class="task-app">🌐</span></button>
+        <button class="task-button" data-open="chrome" aria-label="Chrome" title="Google Chrome"><span class="task-app">🌐</span></button>
+        <button class="task-button" data-open="settings" aria-label="Settings" title="Settings"><span class="task-app">⚙️</span></button>
+        <button class="task-button" data-open="calculator" aria-label="Calculator" title="Calculator"><span class="task-app">▦</span></button>
+        <span id="runningApps"></span>
+      </nav>
+      <div class="tray"><button id="quickSettingsButton" class="tray-control" aria-label="Quick settings" title="Quick settings"><span>⌃</span><span>◉</span><span>◖</span></button><button id="calendarButton" class="calendar-button" aria-label="Open calendar" title="Calendar"><span class="clock"><time id="clockTime"></time><time id="clockDate"></time></span></button></div>
+    </footer>
+  </main>
+  <script>
+    const desktop = document.getElementById('desktop');
+    const startPanel = document.getElementById('startPanel');
+    const startButton = document.getElementById('startButton');
+    const searchInput = document.getElementById('startSearch');
+    const windowsHost = document.getElementById('windows');
+    const appTitles = { files: 'File Explorer', browser: 'Microsoft Edge', chrome: 'Google Chrome', settings: 'Settings', store: '▦', photos: '🌄', mail: 'Mail', notes: 'Notepad', calculator: 'Calculator', terminal: 'Terminal', about: 'About Windows', serumos: 'SerumOS', plutonium: 'Plutonium Network', cloudGaming: 'Cloud Gaming' };
+    const appIcons = { files: '📁', browser: '🌐', chrome: '🌐', settings: '⚙️', store: '▦', photos: '🌄', mail: '✉️', notes: '📝', calculator: '▦', terminal: '›_', about: 'ⓘ', serumos: '🖥️', plutonium: '☢️', cloudGaming: '🎮' };
+    const openWindows = new Map();
+    const wallpaperChoices = [
+      { id: 'alpine', label: 'Alpine lake', image: 'https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=1600&q=72' },
+      { id: 'forest', label: 'Misty forest', image: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1600&q=72' },
+      { id: 'ocean', label: 'Open water', image: 'https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&fit=crop&w=1600&q=72' },
+      { id: 'dunes', label: 'Quiet dunes', image: 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?auto=format&fit=crop&w=1600&q=72' }
+    ];
+    const accentChoices = [
+      { label: 'Sky', value: '#138ada' },
+      { label: 'Teal', value: '#008a84' },
+      { label: 'Coral', value: '#d75748' },
+      { label: 'Amber', value: '#a96900' },
+      { label: 'Leaf', value: '#4c812f' }
+    ];
+    const cloudGamingServices = {
+      xbox: { title: 'Xbox Cloud Gaming', detail: 'Provider blocks embedded play', icon: '🟢', url: 'https://www.xbox.com/play', embeddable: false },
+      geforce: { title: 'GeForce NOW', detail: 'Provider blocks embedded play', icon: '🟩', url: 'https://play.geforcenow.com/', embeddable: false },
+      luna: { title: 'Amazon Luna', detail: 'Provider blocks embedded play', icon: '🌙', url: 'https://luna.amazon.com/', embeddable: false },
+      plutonium: { title: 'Plutonium Network', detail: 'Open its games and cloud services hub', icon: '☢️', url: 'https://plutoniumnet.work/', embeddable: true }
+    };
+    const defaultPreferences = { wallpaper: 'alpine', wallpaperUrl: '', accent: '#138ada', transparency: true, nightLight: false, darkMode: false, brightness: 100, performanceMode: false };
+    function normalizeWallpaperUrl(value) {
+      if (typeof value !== 'string' || value.length > 2048) return '';
+      try {
+        const url = new URL(value.trim());
+        return url.protocol === 'https:' ? url.href : '';
+      } catch {
+        return '';
+      }
+    }
+    function loadDesktopPreferences() {
+      try {
+        const saved = JSON.parse(localStorage.getItem('desktopPreferences') || '{}');
+        const wallpaperUrl = normalizeWallpaperUrl(saved.wallpaperUrl);
+        return {
+          wallpaper: wallpaperChoices.some(choice => choice.id === saved.wallpaper) ? saved.wallpaper : saved.wallpaper === 'custom' && wallpaperUrl ? 'custom' : defaultPreferences.wallpaper,
+          wallpaperUrl,
+          accent: /^#[\da-f]{6}$/i.test(saved.accent) ? saved.accent : defaultPreferences.accent,
+          transparency: saved.transparency !== false,
+          nightLight: saved.nightLight === true,
+          darkMode: saved.darkMode === true,
+          brightness: Number.isFinite(saved.brightness) ? Math.min(100, Math.max(35, saved.brightness)) : defaultPreferences.brightness,
+          performanceMode: saved.performanceMode === true
+        };
+      } catch {
+        return { ...defaultPreferences };
+      }
+    }
+    const desktopPreferences = loadDesktopPreferences();
+    let topZ = 6;
+    let searchSequence = 0;
+    const browserHistories = new WeakMap();
+    const browserHomeMarkup = new WeakMap();
+    const chromeTabStates = new WeakMap();
+    const chromeBookmarkKey = 'desktopChromeBookmarks';
+    let chromeTabSequence = 0;
+
+    function applyDesktopPreferences() {
+      const wallpaper = wallpaperChoices.find(choice => choice.id === desktopPreferences.wallpaper) || wallpaperChoices[0];
+      const wallpaperUrl = desktopPreferences.wallpaper === 'custom' ? desktopPreferences.wallpaperUrl : wallpaper.image;
+      desktop.style.setProperty('--wallpaper-image', `url("${wallpaperUrl}")`);
+      desktop.style.filter = desktopPreferences.brightness === 100 ? '' : `brightness(${desktopPreferences.brightness / 100})`;
+      document.documentElement.style.setProperty('--accent', desktopPreferences.accent);
+      desktop.classList.toggle('night-light', desktopPreferences.nightLight);
+      desktop.classList.toggle('dark-mode', desktopPreferences.darkMode);
+      desktop.classList.toggle('performance-mode', desktopPreferences.performanceMode);
+      const backdrop = desktopPreferences.transparency ? 'blur(24px) saturate(1.4)' : 'none';
+      document.querySelectorAll('.start-panel,.taskbar').forEach(element => {
+        element.style.backdropFilter = backdrop;
+        element.style.webkitBackdropFilter = backdrop;
+      });
+    }
+
+    function saveDesktopPreferences() {
+      try { localStorage.setItem('desktopPreferences', JSON.stringify(desktopPreferences)); } catch {}
+    }
+
+    function updateDesktopPreference(name, value) {
+      desktopPreferences[name] = value;
+      applyDesktopPreferences();
+      saveDesktopPreferences();
+      if (name === 'nightLight') document.getElementById('nightLightQuick').checked = value;
+      if (name === 'brightness') document.getElementById('brightnessRange').value = value;
+    }
+
+    function setupDesktopIconPositions() {
+      let savedPositions = {};
+      try { savedPositions = JSON.parse(localStorage.getItem('desktopIconPositions') || '{}'); } catch {}
+      const icons = [...document.querySelectorAll('.desktop-icon[data-icon-id]')];
+      const savePositions = () => {
+        const positions = Object.fromEntries(icons.map(icon => [icon.dataset.iconId, {
+          x: parseFloat(icon.style.left) || 0,
+          y: parseFloat(icon.style.top) || 0
+        }]));
+        try { localStorage.setItem('desktopIconPositions', JSON.stringify(positions)); } catch {}
+      };
+
+      icons.forEach((icon, index) => {
+        const saved = savedPositions[icon.dataset.iconId];
+        const maxX = Math.max(0, desktop.clientWidth - icon.offsetWidth);
+        const maxY = Math.max(0, desktop.clientHeight - 68 - icon.offsetHeight);
+        const x = Number.isFinite(saved?.x) ? Math.min(maxX, Math.max(0, saved.x)) : 16;
+        const y = Number.isFinite(saved?.y) ? Math.min(maxY, Math.max(0, saved.y)) : 18 + index * 85;
+        icon.style.left = `${x}px`;
+        icon.style.top = `${Math.min(y, maxY)}px`;
+        icon.addEventListener('pointerdown', event => {
+          if (event.button !== 0) return;
+          event.preventDefault();
+          icon.setPointerCapture(event.pointerId);
+          const startX = event.clientX;
+          const startY = event.clientY;
+          const originX = parseFloat(icon.style.left);
+          const originY = parseFloat(icon.style.top);
+          let moved = false;
+          const moveIcon = pointerEvent => {
+            const deltaX = pointerEvent.clientX - startX;
+            const deltaY = pointerEvent.clientY - startY;
+            if (!moved && Math.hypot(deltaX, deltaY) < 4) return;
+            moved = true;
+            icon.style.cursor = 'grabbing';
+            const boundX = Math.max(0, desktop.clientWidth - icon.offsetWidth);
+            const boundY = Math.max(0, desktop.clientHeight - 68 - icon.offsetHeight);
+            icon.style.left = `${Math.max(0, Math.min(boundX, originX + deltaX))}px`;
+            icon.style.top = `${Math.max(0, Math.min(boundY, originY + deltaY))}px`;
+          };
+          const finishMove = pointerEvent => {
+            icon.removeEventListener('pointermove', moveIcon);
+            icon.style.cursor = 'grab';
+            if (moved && pointerEvent.type === 'pointerup') {
+              draggedDesktopIcon = icon;
+              savePositions();
+              setTimeout(() => { if (draggedDesktopIcon === icon) draggedDesktopIcon = null; }, 0);
+            }
+          };
+          icon.addEventListener('pointermove', moveIcon);
+          icon.addEventListener('pointerup', finishMove, { once: true });
+          icon.addEventListener('pointercancel', finishMove, { once: true });
+        });
+      });
+    }
+
+    const localFilesKey = 'desktopLocalFiles';
+    const defaultLocalFiles = [
+      { id: 'folder-documents', name: 'Documents', type: 'folder', parent: 'root', contents: '' },
+      { id: 'folder-downloads', name: 'Downloads', type: 'folder', parent: 'root', contents: '' },
+      { id: 'folder-pictures', name: 'Pictures', type: 'folder', parent: 'root', contents: '' }
+    ];
+
+    function cleanFileName(value) {
+      return value.trim().replace(/[\\/]/g, '-').slice(0, 80);
+    }
+
+    function createLocalFileEntry(name, type, parent, contents = '') {
+      const safeName = cleanFileName(name);
+      if (!safeName || !['folder', 'text'].includes(type)) return null;
+      return {
+        id: globalThis.crypto?.randomUUID?.() || `local-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        name: safeName,
+        type,
+        parent,
+        contents: type === 'text' ? contents : ''
+      };
+    }
+
+    function loadLocalFiles() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(localFilesKey) || 'null');
+        if (!Array.isArray(saved)) return defaultLocalFiles.map(entry => ({ ...entry }));
+        return saved.filter(entry => entry && typeof entry.id === 'string' && typeof entry.name === 'string' && ['folder', 'text'].includes(entry.type) && typeof entry.parent === 'string').map(entry => ({
+          id: entry.id,
+          name: cleanFileName(entry.name),
+          type: entry.type,
+          parent: entry.parent,
+          contents: entry.type === 'text' && typeof entry.contents === 'string' ? entry.contents : ''
+        }));
+      } catch {
+        return defaultLocalFiles.map(entry => ({ ...entry }));
+      }
+    }
+
+    function saveLocalFiles(entries) {
+      try {
+        localStorage.setItem(localFilesKey, JSON.stringify(entries));
+        return true;
+      } catch {
+        notify('Local storage is full. Download files you want to keep, then remove older items.');
+        return false;
+      }
+    }
+
+    function setupFileExplorer(win) {
+      let entries = loadLocalFiles();
+      let currentFolder = 'root';
+      let selectedEntryId = null;
+      let activeFileId = null;
+      const grid = win.querySelector('#fileGrid');
+      const empty = win.querySelector('#fileEmpty');
+      const heading = win.querySelector('#fileHeading');
+      const breadcrumb = win.querySelector('#fileBreadcrumb');
+      const search = win.querySelector('#fileSearch');
+      const editor = win.querySelector('#fileEditor');
+      const editorText = win.querySelector('#fileEditorText');
+      const uploadInput = win.querySelector('#fileUpload');
+
+      function getEntry(id) { return entries.find(entry => entry.id === id); }
+
+      function render() {
+        const folder = currentFolder === 'root' ? null : getEntry(currentFolder);
+        if (currentFolder !== 'root' && folder?.type !== 'folder') currentFolder = 'root';
+        heading.textContent = folder?.name || 'Quick access';
+        const pathParts = [];
+        let pathEntry = folder;
+        while (pathEntry) {
+          pathParts.unshift(pathEntry.name);
+          pathEntry = pathEntry.parent === 'root' ? null : getEntry(pathEntry.parent);
+        }
+        breadcrumb.textContent = ['Home', ...pathParts].join('  ›  ');
+        win.querySelectorAll('.file-nav[data-folder]').forEach(button => button.classList.toggle('selected', button.dataset.folder === currentFolder));
+        const query = search.value.trim().toLowerCase();
+        const visibleEntries = entries.filter(entry => entry.parent === currentFolder && entry.name.toLowerCase().includes(query));
+        grid.replaceChildren();
+        for (const entry of visibleEntries) {
+          const tile = document.createElement('button');
+          tile.type = 'button';
+          tile.className = `file-tile${entry.id === selectedEntryId ? ' selected' : ''}`;
+          tile.dataset.fileId = entry.id;
+          const icon = document.createElement('span');
+          icon.className = 'file-emoji';
+          icon.textContent = entry.type === 'folder' ? '📁' : '📄';
+          const name = document.createElement('span');
+          name.textContent = entry.name;
+          tile.append(icon, name);
+          grid.append(tile);
+        }
+        empty.classList.toggle('hidden', visibleEntries.length > 0);
+        empty.textContent = query ? 'No matching items in this folder.' : 'This folder is empty.';
+      }
+
+      function openTextFile(entry) {
+        activeFileId = entry.id;
+        grid.classList.add('hidden');
+        empty.classList.add('hidden');
+        editor.classList.remove('hidden');
+        heading.textContent = entry.name;
+        editorText.value = entry.contents;
+        editorText.focus();
+      }
+
+      function addEntry(name, type, contents = '') {
+        const entry = createLocalFileEntry(name, type, currentFolder, contents);
+        if (!entry) { notify('Enter a name for this item.'); return null; }
+        entries.push(entry);
+        selectedEntryId = entry.id;
+        saveLocalFiles(entries);
+        render();
+        return entry;
+      }
+
+      function finishEditing() {
+        activeFileId = null;
+        editor.classList.add('hidden');
+        grid.classList.remove('hidden');
+        render();
+      }
+
+      win.querySelectorAll('.file-nav[data-folder]').forEach(button => button.addEventListener('click', () => {
+        currentFolder = button.dataset.folder;
+        selectedEntryId = null;
+        editor.classList.add('hidden');
+        grid.classList.remove('hidden');
+        render();
+      }));
+      grid.addEventListener('click', event => {
+        const tile = event.target.closest('[data-file-id]');
+        if (!tile) return;
+        selectedEntryId = tile.dataset.fileId;
+        grid.querySelectorAll('.file-tile').forEach(item => item.classList.toggle('selected', item === tile));
+      });
+      grid.addEventListener('dblclick', event => {
+        const tile = event.target.closest('[data-file-id]');
+        const entry = tile && getEntry(tile.dataset.fileId);
+        if (!entry) return;
+        if (entry.type === 'folder') {
+          currentFolder = entry.id;
+          selectedEntryId = null;
+          render();
+        } else openTextFile(entry);
+      });
+      grid.addEventListener('keydown', event => {
+        if (event.key !== 'Enter') return;
+        const tile = event.target.closest('[data-file-id]');
+        const entry = tile && getEntry(tile.dataset.fileId);
+        if (!entry) return;
+        if (entry.type === 'folder') { currentFolder = entry.id; selectedEntryId = null; render(); }
+        else openTextFile(entry);
+      });
+      search.addEventListener('input', render);
+      editorText.addEventListener('input', () => {
+        const entry = getEntry(activeFileId);
+        if (!entry) return;
+        entry.contents = editorText.value;
+        saveLocalFiles(entries);
+      });
+      win.querySelector('.file-toolbar').addEventListener('click', async event => {
+        const action = event.target.closest('[data-file-action]')?.dataset.fileAction;
+        if (!action) return;
+        if (action === 'new-folder' || action === 'new-file') {
+          const name = prompt(action === 'new-folder' ? 'Folder name' : 'Text file name', action === 'new-file' ? 'New note.txt' : 'New folder');
+          const entry = addEntry(name || '', action === 'new-folder' ? 'folder' : 'text');
+          if (entry?.type === 'text') openTextFile(entry);
+        }
+        if (action === 'upload') uploadInput.click();
+        if (action === 'rename') {
+          const entry = getEntry(selectedEntryId);
+          if (!entry) { notify('Select a file or folder first.'); return; }
+          const name = prompt('Rename item', entry.name);
+          if (name !== null && cleanFileName(name)) { entry.name = cleanFileName(name); saveLocalFiles(entries); render(); }
+        }
+        if (action === 'delete') {
+          if (!getEntry(selectedEntryId)) { notify('Select a file or folder first.'); return; }
+          const removed = new Set([selectedEntryId]);
+          let foundChild = true;
+          while (foundChild) {
+            foundChild = false;
+            for (const entry of entries) if (removed.has(entry.parent) && !removed.has(entry.id)) { removed.add(entry.id); foundChild = true; }
+          }
+          entries = entries.filter(entry => !removed.has(entry.id));
+          selectedEntryId = null;
+          saveLocalFiles(entries);
+          render();
+        }
+      });
+      win.querySelector('.file-editor-actions').addEventListener('click', event => {
+        const action = event.target.closest('[data-file-action]')?.dataset.fileAction;
+        const entry = getEntry(activeFileId);
+        if (action === 'save' && entry) {
+          entry.contents = editorText.value;
+          saveLocalFiles(entries);
+          notify('Saved on this device.');
+        }
+        if (action === 'download' && entry) {
+          const url = URL.createObjectURL(new Blob([editorText.value], { type: 'text/plain;charset=utf-8' }));
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = entry.name;
+          link.click();
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }
+        if (action === 'back') finishEditing();
+      });
+      uploadInput.addEventListener('change', async () => {
+        const uploads = [...uploadInput.files];
+        uploadInput.value = '';
+        for (const file of uploads) {
+          if (file.size > 256 * 1024) { notify(`${file.name} exceeds the 256 KB text-file limit.`); continue; }
+          try { addEntry(file.name, 'text', await file.text()); }
+          catch { notify(`Could not read ${file.name}.`); }
+        }
+      });
+      render();
+    }
+
+    function setupSettings(win) {
+      const wallpaperGrid = win.querySelector('#wallpaperChoices');
+      for (const choice of wallpaperChoices) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'wallpaper-choice';
+        button.setAttribute('role', 'radio');
+        button.setAttribute('aria-label', choice.label);
+        button.setAttribute('aria-pressed', String(desktopPreferences.wallpaper === choice.id));
+        const preview = document.createElement('span');
+        preview.className = 'wallpaper-preview';
+        const previewUrl = new URL(choice.image);
+        previewUrl.searchParams.set('w', '420');
+        previewUrl.searchParams.set('q', '55');
+        preview.style.backgroundImage = `url("${previewUrl.href}")`;
+        const label = document.createElement('span');
+        label.textContent = choice.label;
+        button.append(preview, label);
+        button.addEventListener('click', () => {
+          updateDesktopPreference('wallpaper', choice.id);
+          wallpaperGrid.querySelectorAll('.wallpaper-choice').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+        });
+        wallpaperGrid.append(button);
+      }
+
+      const wallpaperUrlInput = win.querySelector('#wallpaperUrlInput');
+      wallpaperUrlInput.value = desktopPreferences.wallpaper === 'custom' ? desktopPreferences.wallpaperUrl : '';
+      win.querySelector('#wallpaperUrlForm').addEventListener('submit', event => {
+        event.preventDefault();
+        const wallpaperUrl = normalizeWallpaperUrl(wallpaperUrlInput.value);
+        if (!wallpaperUrl) {
+          wallpaperUrlInput.setCustomValidity('Enter a valid HTTPS image URL.');
+          wallpaperUrlInput.reportValidity();
+          return;
+        }
+        wallpaperUrlInput.setCustomValidity('');
+        updateDesktopPreference('wallpaperUrl', wallpaperUrl);
+        updateDesktopPreference('wallpaper', 'custom');
+        wallpaperGrid.querySelectorAll('.wallpaper-choice').forEach(item => item.setAttribute('aria-pressed', 'false'));
+        notify('Custom wallpaper applied.');
+      });
+      wallpaperUrlInput.addEventListener('input', () => wallpaperUrlInput.setCustomValidity(''));
+
+      const accentGrid = win.querySelector('#accentChoices');
+      for (const choice of accentChoices) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'accent-swatch';
+        button.style.backgroundColor = choice.value;
+        button.title = choice.label;
+        button.setAttribute('aria-label', `${choice.label} accent`);
+        button.setAttribute('aria-pressed', String(desktopPreferences.accent === choice.value));
+        button.addEventListener('click', () => {
+          updateDesktopPreference('accent', choice.value);
+          win.querySelector('#customAccent').value = choice.value;
+          accentGrid.querySelectorAll('.accent-swatch').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+        });
+        accentGrid.append(button);
+      }
+
+      const customAccent = document.createElement('input');
+      customAccent.type = 'color';
+      customAccent.id = 'customAccent';
+      customAccent.className = 'custom-color';
+      customAccent.setAttribute('aria-label', 'Custom accent color');
+      customAccent.value = desktopPreferences.accent;
+      customAccent.addEventListener('input', () => {
+        updateDesktopPreference('accent', customAccent.value);
+        accentGrid.querySelectorAll('.accent-swatch').forEach(item => item.setAttribute('aria-pressed', String(item.style.backgroundColor === customAccent.value)));
+      });
+      accentGrid.append(customAccent);
+
+      const transparencyToggle = win.querySelector('#transparencyToggle');
+      transparencyToggle.checked = desktopPreferences.transparency;
+      transparencyToggle.addEventListener('change', () => updateDesktopPreference('transparency', transparencyToggle.checked));
+      const nightLightToggle = win.querySelector('#nightLightToggle');
+      nightLightToggle.checked = desktopPreferences.nightLight;
+      nightLightToggle.addEventListener('change', () => updateDesktopPreference('nightLight', nightLightToggle.checked));
+      const darkModeRow = document.createElement('div');
+      darkModeRow.className = 'setting-row';
+      const darkModeLabel = document.createElement('span');
+      darkModeLabel.innerHTML = 'Dark mode<small>Use dark surfaces across the desktop</small>';
+      const darkModeToggle = document.createElement('input');
+      darkModeToggle.type = 'checkbox';
+      darkModeToggle.className = 'switch';
+      darkModeToggle.id = 'darkModeToggle';
+      darkModeToggle.setAttribute('aria-label', 'Dark mode');
+      darkModeToggle.checked = desktopPreferences.darkMode;
+      darkModeToggle.addEventListener('change', () => updateDesktopPreference('darkMode', darkModeToggle.checked));
+      darkModeRow.append(darkModeLabel, darkModeToggle);
+      win.querySelector('.settings-content').append(darkModeRow);
+      const performanceRow = document.createElement('div');
+      performanceRow.className = 'setting-row';
+      const performanceLabel = document.createElement('span');
+      performanceLabel.innerHTML = 'Performance mode<small>Reduce blur, shadows, and motion</small>';
+      const performanceToggle = document.createElement('input');
+      performanceToggle.type = 'checkbox';
+      performanceToggle.className = 'switch';
+      performanceToggle.setAttribute('aria-label', 'Performance mode');
+      performanceToggle.checked = desktopPreferences.performanceMode;
+      performanceToggle.addEventListener('change', () => updateDesktopPreference('performanceMode', performanceToggle.checked));
+      performanceRow.append(performanceLabel, performanceToggle);
+      win.querySelector('.settings-content').append(performanceRow);
+    }
+
+    function setupCloudGaming(win) {
+      const lobby = win.querySelector('#cloudServices');
+      const player = win.querySelector('#cloudPlayer');
+      const status = win.querySelector('#cloudStatus');
+      const backButton = win.querySelector('#cloudBack');
+      const notice = win.querySelector('#cloudNotice');
+      lobby.querySelectorAll('[data-cloud-service]').forEach(button => button.addEventListener('click', () => {
+        const service = cloudGamingServices[button.dataset.cloudService];
+        if (!service) return;
+        lobby.classList.add('hidden');
+        backButton.classList.remove('hidden');
+        if (!service.embeddable) {
+          player.classList.add('hidden');
+          notice.classList.remove('hidden');
+          notice.replaceChildren();
+          const heading = document.createElement('strong');
+          heading.textContent = `${service.title} unavailable here`;
+          const explanation = document.createElement('span');
+          explanation.textContent = 'This provider blocks embedded sessions. To keep this desktop contained, it will not open an external tab.';
+          notice.append(heading, explanation);
+          status.textContent = 'Provider blocks embedded play';
+          return;
+        }
+        notice.classList.add('hidden');
+        player.title = service.title;
+        player.classList.remove('hidden');
+        player.src = service.url;
+        status.textContent = `Loading ${service.title}`;
+        player.addEventListener('load', () => { status.textContent = `${service.title} opened in this window`; }, { once: true });
+      }));
+      backButton.addEventListener('click', () => {
+        player.src = 'about:blank';
+        player.classList.add('hidden');
+        notice.classList.add('hidden');
+        lobby.classList.remove('hidden');
+        backButton.classList.add('hidden');
+        status.textContent = 'Choose a service';
+      });
+      win.querySelector('#cloudReload').addEventListener('click', () => {
+        if (!player.classList.contains('hidden')) player.src = player.src;
+      });
+    }
+
+    applyDesktopPreferences();
+    let draggedDesktopIcon = null;
+    setupDesktopIconPositions();
+
+    function setStart(open) {
+      startPanel.classList.toggle('open', open);
+      startPanel.setAttribute('aria-hidden', String(!open));
+      startButton.classList.toggle('active', open);
+      if (open) setTimeout(() => searchInput.focus(), 80);
+    }
+
+    function collectRelatedTopics(topics, entries) {
+      if (!Array.isArray(topics)) return;
+      for (const topic of topics) {
+        if (Array.isArray(topic.Topics)) collectRelatedTopics(topic.Topics, entries);
+        else if (topic.Text) entries.push({ title: topic.Text.split(' - ')[0], text: topic.Text, source: 'Related result', url: topic.FirstURL || '' });
+      }
+    }
+
+    function normalizeWebAddress(value) {
+      const address = value.trim();
+      if (!address) return '';
+      const hasHttpScheme = /^https?:\/\//i.test(address);
+      const looksLikeHost = /^(?:localhost|(?:[\w-]+\.)+[a-z]{2,}|(?:\d{1,3}\.){3}\d{1,3})(?::\d+)?(?:[/?#]\S*)?$/i.test(address);
+      if (!hasHttpScheme && !looksLikeHost) return '';
+      try {
+        const url = new URL(hasHttpScheme ? address : `https://${address}`);
+        return url.protocol === 'http:' || url.protocol === 'https:' ? url.href : '';
+      } catch {
+        return '';
+      }
+    }
+
+    function normalizeChromeInternal(value) {
+      try {
+        const url = new URL(value.trim());
+        return url.protocol === 'chrome:' && url.hostname ? `chrome://${url.hostname.toLowerCase()}${url.pathname === '/' ? '' : url.pathname}` : '';
+      } catch { return ''; }
+    }
+
+    function loadChromeHistory() {
+      try {
+        const saved = JSON.parse(localStorage.getItem('desktopChromeHistory') || '[]');
+        return Array.isArray(saved) ? saved.filter(entry => entry && typeof entry.title === 'string' && typeof entry.value === 'string' && ['url', 'search'].includes(entry.type)).slice(-100) : [];
+      } catch { return []; }
+    }
+
+    function recordChromeHistory(win, type, value) {
+      if (win.dataset.app !== 'chrome') return;
+      const entries = loadChromeHistory();
+      entries.unshift({ type, value, title: type === 'search' ? value : (() => { try { return new URL(value).hostname; } catch { return value; } })(), visitedAt: Date.now() });
+      try { localStorage.setItem('desktopChromeHistory', JSON.stringify(entries.slice(0, 100))); } catch {}
+    }
+
+    function renderChromeInternal(win, route, addHistory = true) {
+      const normalized = normalizeChromeInternal(route);
+      if (!normalized || win.dataset.app !== 'chrome') return false;
+      const page = new URL(normalized).hostname;
+      if (page === 'newtab') {
+        if (addHistory) pushBrowserHistory(win, { type: 'home', value: '' });
+        showBrowserHome(win);
+        return true;
+      }
+      if (addHistory) pushBrowserHistory(win, { type: 'internal', value: normalized });
+      win.dataset.searchId = String(++searchSequence);
+      delete win.dataset.currentUrl;
+      delete win.dataset.lastQuery;
+      delete win.dataset.readerMode;
+      updateChromeBookmarkButton(win);
+      const reader = win.querySelector('[data-browser-reader]');
+      reader.disabled = true;
+      reader.setAttribute('aria-pressed', 'false');
+      win.querySelector('.browser-address').value = normalized;
+      win.querySelector('.browser-frame').classList.add('hidden');
+      win.querySelector('.browser-frame').src = 'about:blank';
+      const content = win.querySelector('.web-content');
+      content.classList.remove('hidden', 'search-results');
+      content.classList.add('chrome-internal');
+      content.replaceChildren();
+      const header = document.createElement('header');
+      header.className = 'chrome-internal-heading';
+      const title = document.createElement('h2');
+      title.textContent = ({ history: 'History', bookmarks: 'Bookmarks', downloads: 'Downloads', settings: 'Chrome settings', version: 'Chrome version', about: 'About Chrome' })[page] || 'Chrome page';
+      header.append(title);
+      if (page === 'history') {
+        const clear = document.createElement('button');
+        clear.type = 'button';
+        clear.textContent = 'Clear history';
+        clear.addEventListener('click', () => {
+          try { localStorage.removeItem('desktopChromeHistory'); } catch {}
+          renderChromeInternal(win, normalized, false);
+        });
+        header.append(clear);
+      }
+      content.append(header);
+
+      const addRow = (label, detail, action, secondary) => {
+        const row = document.createElement('div');
+        row.className = 'chrome-internal-row';
+        const primary = document.createElement('button');
+        primary.type = 'button';
+        primary.textContent = label;
+        primary.addEventListener('click', action);
+        row.append(primary);
+        if (detail) {
+          const small = document.createElement('small');
+          small.textContent = detail;
+          row.append(small);
+        }
+        if (secondary) row.append(secondary);
+        content.append(row);
+      };
+
+      if (page === 'history') {
+        for (const entry of loadChromeHistory()) addRow(entry.title, new Date(entry.visitedAt).toLocaleString(), () => entry.type === 'search' ? searchInBrowser(entry.value, true, 'chrome') : navigateBrowser(win, entry.value));
+      } else if (page === 'bookmarks') {
+        for (const bookmark of loadChromeBookmarks()) {
+          const remove = document.createElement('button');
+          remove.type = 'button';
+          remove.textContent = 'Remove';
+          remove.addEventListener('click', () => {
+            const next = loadChromeBookmarks().filter(item => item.url !== bookmark.url);
+            try { localStorage.setItem(chromeBookmarkKey, JSON.stringify(next)); } catch {}
+            renderChromeInternal(win, normalized, false);
+          });
+          addRow(bookmark.title, bookmark.url, () => navigateBrowser(win, bookmark.url), remove);
+        }
+      } else if (page === 'settings') {
+        addRow('Search engine', 'DuckDuckGo instant answers', () => notify('Search provider is configured for this desktop.'));
+        addRow('Reader mode', 'Use the Reader button for sites that block embedding', () => notify('Reader mode is available in the address toolbar.'));
+        addRow('Desktop appearance', 'Wallpaper, theme, and performance settings', () => openApp('settings'));
+      } else if (page === 'version' || page === 'about') {
+        addRow('Google Chrome-style desktop browser', 'Running inside the local Windows desktop simulation', () => {});
+        addRow('Version', 'Local browser shell · 1.0', () => {});
+      } else if (page === 'downloads') {
+        addRow('Downloads are kept in this browser session', 'Page downloads are restricted to keep navigation contained.', () => {});
+      } else {
+        const empty = document.createElement('p');
+        empty.className = 'chrome-internal-empty';
+        empty.textContent = `The internal page chrome://${page}/ is not implemented in this desktop.`;
+        content.append(empty);
+      }
+      if (!content.querySelector('.chrome-internal-row')) {
+        const empty = document.createElement('p');
+        empty.className = 'chrome-internal-empty';
+        empty.textContent = page === 'history' ? 'No browsing history yet.' : page === 'bookmarks' ? 'No bookmarks saved yet.' : 'Nothing to show here yet.';
+        content.append(empty);
+      }
+      updateChromeTabTitle(win);
+      return true;
+    }
+
+    function getBrowserHistory(win) {
+      if (!browserHistories.has(win)) browserHistories.set(win, { entries: [], index: -1 });
+      return browserHistories.get(win);
+    }
+
+    function updateBrowserHistoryButtons(win) {
+      const history = getBrowserHistory(win);
+      win.querySelector('[data-browser-back]').disabled = history.index <= 0;
+      win.querySelector('[data-browser-forward]').disabled = history.index >= history.entries.length - 1;
+    }
+
+    function getActiveChromeTab(win) {
+      const state = chromeTabStates.get(win);
+      return state?.tabs.find(tab => tab.id === state.activeId);
+    }
+
+    function updateChromeTabTitle(win) {
+      const tab = getActiveChromeTab(win);
+      if (!tab) return;
+      const entry = tab.history.entries[tab.history.index];
+      if (!entry || entry.type === 'home') tab.title = 'New tab';
+      else if (entry.type === 'search') tab.title = entry.value.slice(0, 24);
+      else {
+        try { tab.title = new URL(entry.value).hostname; } catch { tab.title = entry.value.slice(0, 24); }
+      }
+      renderChromeTabs(win);
+    }
+
+    function renderChromeTabs(win) {
+      const state = chromeTabStates.get(win);
+      const list = win.querySelector('#chromeTabList');
+      if (!state || !list) return;
+      list.replaceChildren();
+      for (const tab of state.tabs) {
+        const item = document.createElement('div');
+        item.className = 'chrome-tab';
+        const select = document.createElement('button');
+        select.type = 'button';
+        select.className = 'chrome-tab-select';
+        select.setAttribute('role', 'tab');
+        select.setAttribute('aria-selected', String(tab.id === state.activeId));
+        select.textContent = tab.title;
+        select.addEventListener('click', () => activateChromeTab(win, tab.id));
+        const close = document.createElement('button');
+        close.type = 'button';
+        close.className = 'chrome-tab-close';
+        close.setAttribute('aria-label', `Close ${tab.title}`);
+        close.textContent = '×';
+        close.addEventListener('click', () => closeChromeTab(win, tab.id));
+        item.append(select, close);
+        list.append(item);
+      }
+    }
+
+    function createChromeTab(win) {
+      const state = chromeTabStates.get(win);
+      if (!state) return;
+      const active = getActiveChromeTab(win);
+      if (active) active.history = getBrowserHistory(win);
+      const tab = { id: `chrome-tab-${++chromeTabSequence}`, title: 'New tab', history: { entries: [{ type: 'home', value: '' }], index: 0 } };
+      state.tabs.push(tab);
+      state.activeId = tab.id;
+      browserHistories.set(win, tab.history);
+      renderChromeTabs(win);
+      updateBrowserHistoryButtons(win);
+      showBrowserHome(win);
+    }
+
+    function activateChromeTab(win, tabId) {
+      const state = chromeTabStates.get(win);
+      if (!state || state.activeId === tabId) return;
+      const active = getActiveChromeTab(win);
+      if (active) active.history = getBrowserHistory(win);
+      const next = state.tabs.find(tab => tab.id === tabId);
+      if (!next) return;
+      state.activeId = tabId;
+      browserHistories.set(win, next.history);
+      renderChromeTabs(win);
+      restoreBrowserHistory(win, 0);
+    }
+
+    function closeChromeTab(win, tabId) {
+      const state = chromeTabStates.get(win);
+      if (!state) return;
+      const closingIndex = state.tabs.findIndex(tab => tab.id === tabId);
+      if (closingIndex < 0) return;
+      const wasActive = state.activeId === tabId;
+      state.tabs.splice(closingIndex, 1);
+      if (!state.tabs.length) { state.activeId = null; createChromeTab(win); return; }
+      if (wasActive) {
+        const next = state.tabs[Math.min(closingIndex, state.tabs.length - 1)];
+        state.activeId = next.id;
+        browserHistories.set(win, next.history);
+        renderChromeTabs(win);
+        restoreBrowserHistory(win, 0);
+      } else renderChromeTabs(win);
+    }
+
+    function loadChromeBookmarks() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(chromeBookmarkKey) || '[]');
+        return Array.isArray(saved) ? saved.filter(item => item && typeof item.title === 'string' && normalizeWebAddress(item.url)).map(item => ({ title: item.title.slice(0, 80), url: normalizeWebAddress(item.url) })) : [];
+      } catch { return []; }
+    }
+
+    function updateChromeBookmarkButton(win) {
+      const button = win.querySelector('[data-chrome-bookmark]');
+      if (!button) return;
+      const url = win.dataset.currentUrl || '';
+      const saved = loadChromeBookmarks().some(item => item.url === url);
+      button.disabled = !url;
+      button.textContent = saved ? '★' : '☆';
+      button.setAttribute('aria-pressed', String(saved));
+    }
+
+    function setupChromeBookmarks(win) {
+      const panel = win.querySelector('#chromeBookmarks');
+      const render = () => {
+        panel.replaceChildren();
+        for (const bookmark of loadChromeBookmarks()) {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'chrome-bookmark';
+          button.textContent = bookmark.title;
+          button.title = bookmark.url;
+          button.addEventListener('click', () => { panel.classList.add('hidden'); navigateBrowser(win, bookmark.url); });
+          panel.append(button);
+        }
+        if (!panel.childElementCount) {
+          const empty = document.createElement('span');
+          empty.className = 'chrome-bookmark';
+          empty.textContent = 'No bookmarks yet';
+          panel.append(empty);
+        }
+      };
+      win.querySelector('[data-chrome-bookmark]').addEventListener('click', () => {
+        const url = win.dataset.currentUrl;
+        if (!url) return;
+        const bookmarks = loadChromeBookmarks();
+        const index = bookmarks.findIndex(item => item.url === url);
+        if (index >= 0) bookmarks.splice(index, 1);
+        else bookmarks.push({ title: new URL(url).hostname, url });
+        try { localStorage.setItem(chromeBookmarkKey, JSON.stringify(bookmarks)); } catch { notify('Could not save bookmark.'); }
+        updateChromeBookmarkButton(win);
+        render();
+      });
+      win.querySelector('[data-chrome-bookmarks]').addEventListener('click', () => {
+        render();
+        panel.classList.toggle('hidden');
+      });
+    }
+
+    function getActiveChromeTab(win) {
+      const state = chromeTabStates.get(win);
+      return state?.tabs.find(tab => tab.id === state.activeId);
+    }
+
+    function updateChromeTabTitle(win) {
+      const tab = getActiveChromeTab(win);
+      if (!tab) return;
+      const entry = tab.history.entries[tab.history.index];
+      if (!entry || entry.type === 'home') tab.title = 'New Tab';
+      else if (entry.type === 'search') tab.title = entry.value.slice(0, 24);
+      else {
+        try { tab.title = new URL(entry.value).hostname; } catch { tab.title = entry.value.slice(0, 24); }
+      }
+      renderChromeTabs(win);
+    }
+
+    function renderChromeTabs(win) {
+      const state = chromeTabStates.get(win);
+      const list = win.querySelector('#chromeTabList');
+      if (!state || !list) return;
+      list.replaceChildren();
+      for (const tab of state.tabs) {
+        const item = document.createElement('div');
+        item.className = 'chrome-tab';
+        item.setAttribute('role', 'presentation');
+        const select = document.createElement('button');
+        select.type = 'button';
+        select.className = 'chrome-tab-select';
+        select.setAttribute('role', 'tab');
+        select.setAttribute('aria-selected', String(tab.id === state.activeId));
+        select.textContent = tab.title;
+        select.addEventListener('click', () => activateChromeTab(win, tab.id));
+        const close = document.createElement('button');
+        close.type = 'button';
+        close.className = 'chrome-tab-close';
+        close.setAttribute('aria-label', `Close ${tab.title}`);
+        close.textContent = '×';
+        close.addEventListener('click', () => closeChromeTab(win, tab.id));
+        item.append(select, close);
+        list.append(item);
+      }
+    }
+
+    function createChromeTab(win) {
+      const state = chromeTabStates.get(win);
+      if (!state) return;
+      const active = getActiveChromeTab(win);
+      if (active) active.history = getBrowserHistory(win);
+      const tab = {
+        id: `chrome-tab-${++chromeTabSequence}`,
+        title: 'New Tab',
+        history: { entries: [{ type: 'home', value: '' }], index: 0 }
+      };
+      state.tabs.push(tab);
+      state.activeId = tab.id;
+      browserHistories.set(win, tab.history);
+      renderChromeTabs(win);
+      updateBrowserHistoryButtons(win);
+      showBrowserHome(win);
+    }
+
+    function activateChromeTab(win, tabId) {
+      const state = chromeTabStates.get(win);
+      if (!state || state.activeId === tabId) return;
+      const active = getActiveChromeTab(win);
+      if (active) active.history = getBrowserHistory(win);
+      const next = state.tabs.find(tab => tab.id === tabId);
+      if (!next) return;
+      state.activeId = tabId;
+      browserHistories.set(win, next.history);
+      renderChromeTabs(win);
+      restoreBrowserHistory(win, 0);
+    }
+
+    function closeChromeTab(win, tabId) {
+      const state = chromeTabStates.get(win);
+      if (!state) return;
+      const closingIndex = state.tabs.findIndex(tab => tab.id === tabId);
+      if (closingIndex < 0) return;
+      const wasActive = state.activeId === tabId;
+      state.tabs.splice(closingIndex, 1);
+      if (!state.tabs.length) {
+        state.activeId = null;
+        createChromeTab(win);
+        return;
+      }
+      if (wasActive) {
+        const next = state.tabs[Math.min(closingIndex, state.tabs.length - 1)];
+        state.activeId = next.id;
+        browserHistories.set(win, next.history);
+        renderChromeTabs(win);
+        restoreBrowserHistory(win, 0);
+      } else renderChromeTabs(win);
+    }
+
+    function pushBrowserHistory(win, entry) {
+      const history = getBrowserHistory(win);
+      history.entries = history.entries.slice(0, history.index + 1);
+      history.entries.push(entry);
+      history.index = history.entries.length - 1;
+      updateBrowserHistoryButtons(win);
+      updateChromeTabTitle(win);
+      const activeTab = getActiveChromeTab(win);
+      if (activeTab) {
+        activeTab.history = history;
+        updateChromeTabTitle(win);
+      }
+    }
+
+    function showBrowserHome(win) {
+      win.dataset.searchId = String(++searchSequence);
+      delete win.dataset.currentUrl;
+      delete win.dataset.readerMode;
+      delete win.dataset.lastQuery;
+      const readerButton = win.querySelector('[data-browser-reader]');
+      readerButton.disabled = true;
+      readerButton.setAttribute('aria-pressed', 'false');
+      updateChromeBookmarkButton(win);
+      win.querySelector('.browser-address').value = '';
+      const frame = win.querySelector('.browser-frame');
+      frame.src = 'about:blank';
+      frame.classList.add('hidden');
+      const content = win.querySelector('.web-content');
+      content.classList.remove('hidden', 'search-results');
+      content.innerHTML = browserHomeMarkup.get(win);
+      updateChromeTabTitle(win);
+      win.querySelector('.web-search').focus();
+    }
+
+    function restoreBrowserHistory(win, direction) {
+      const history = getBrowserHistory(win);
+      history.index = Math.max(0, Math.min(history.entries.length - 1, history.index + direction));
+      const entry = history.entries[history.index];
+      if (!entry) return;
+      updateBrowserHistoryButtons(win);
+      if (entry.type === 'home') showBrowserHome(win);
+      if (entry.type === 'url') navigateBrowser(win, entry.value, false);
+      if (entry.type === 'search') searchInBrowser(entry.value, false, win.dataset.app);
+      if (entry.type === 'internal') renderChromeInternal(win, entry.value, false);
+    }
+
+    function navigateBrowser(win, address, addHistory = true) {
+      if (addHistory) pushBrowserHistory(win, { type: 'url', value: address });
+      if (addHistory) recordChromeHistory(win, 'url', address);
+      win.dataset.searchId = String(++searchSequence);
+      win.dataset.currentUrl = address;
+      delete win.dataset.readerMode;
+      win.querySelector('.browser-address').value = address;
+      const readerButton = win.querySelector('[data-browser-reader]');
+      readerButton.disabled = false;
+      readerButton.setAttribute('aria-pressed', 'false');
+      updateChromeBookmarkButton(win);
+      win.querySelector('.web-content').classList.add('hidden');
+      const frame = win.querySelector('.browser-frame');
+      frame.classList.remove('hidden');
+      frame.src = address;
+      updateChromeTabTitle(win);
+    }
+
+    function toggleBrowserReader(win) {
+      const source = win.dataset.currentUrl;
+      if (!source) return;
+      const readerButton = win.querySelector('[data-browser-reader]');
+      const readerMode = win.dataset.readerMode !== 'true';
+      win.dataset.readerMode = String(readerMode);
+      readerButton.setAttribute('aria-pressed', String(readerMode));
+      const frame = win.querySelector('.browser-frame');
+      frame.src = readerMode ? `https://r.jina.ai/${source}` : source;
+    }
+
+    function renderSearchResults(win, query, data, message = '') {
+      const content = win.querySelector('.web-content');
+      win.querySelector('.browser-frame').classList.add('hidden');
+      content.classList.remove('hidden');
+      content.classList.add('search-results');
+      content.replaceChildren();
+      const heading = document.createElement('header');
+      heading.className = 'search-results-heading';
+      const title = document.createElement('h2');
+      title.textContent = 'Search results';
+      const caption = document.createElement('p');
+      caption.textContent = query;
+      heading.append(title, caption);
+      content.append(heading);
+      if (message) {
+        const empty = document.createElement('p');
+        empty.className = 'search-empty';
+        empty.textContent = message;
+        content.append(empty);
+        return;
+      }
+
+      const entries = [];
+      if (data.Answer) entries.push({ title: data.Heading || 'Quick answer', text: data.Answer, source: data.AnswerType || 'Answer', url: data.AnswerURL || '' });
+      if (data.Abstract) entries.push({ title: data.Heading || query, text: data.Abstract, source: data.AbstractSource || 'Summary', url: data.AbstractURL || '' });
+      if (data.Definition) entries.push({ title: data.Heading || 'Definition', text: data.Definition, source: data.DefinitionSource || 'Definition', url: data.DefinitionURL || '' });
+      if (Array.isArray(data.Results)) {
+        for (const result of data.Results) if (result.Text) entries.push({ title: result.Text.split(' - ')[0], text: result.Text, source: 'Web result', url: result.FirstURL || '' });
+      }
+      collectRelatedTopics(data.RelatedTopics, entries);
+      for (const entry of entries.slice(0, 8)) {
+        const article = document.createElement('article');
+        article.className = 'search-result';
+        const resultTitle = document.createElement('h3');
+        const destination = normalizeWebAddress(typeof entry.url === 'string' ? entry.url : '');
+        if (destination) {
+          const link = document.createElement('button');
+          link.type = 'button';
+          link.className = 'search-result-title';
+          link.textContent = entry.title;
+          link.addEventListener('click', () => navigateBrowser(win, destination));
+          resultTitle.append(link);
+        } else resultTitle.textContent = entry.title;
+        const resultText = document.createElement('p');
+        resultText.textContent = entry.text;
+        const source = document.createElement('small');
+        source.textContent = entry.source;
+        article.append(resultTitle, resultText, source);
+        content.append(article);
+      }
+      if (!entries.length) {
+        const empty = document.createElement('p');
+        empty.className = 'search-empty';
+        empty.textContent = 'No quick results found. Try another search.';
+        content.append(empty);
+      }
+    }
+
+    async function searchInBrowser(value, addHistory = true, app = 'browser') {
+      const query = value.trim();
+      if (!query) return;
+      const win = openApp(app);
+      if (addHistory) pushBrowserHistory(win, { type: 'search', value: query });
+      if (addHistory) recordChromeHistory(win, 'search', query);
+      delete win.dataset.currentUrl;
+      delete win.dataset.readerMode;
+      const readerButton = win.querySelector('[data-browser-reader]');
+      readerButton.disabled = true;
+      readerButton.setAttribute('aria-pressed', 'false');
+      updateChromeBookmarkButton(win);
+      win.dataset.lastQuery = query;
+      updateChromeTabTitle(win);
+      const requestId = String(++searchSequence);
+      win.dataset.searchId = requestId;
+      win.querySelector('.browser-address').value = query;
+      renderSearchResults(win, query, {}, 'Searching…');
+      const endpoint = new URL('https://api.duckduckgo.com/');
+      endpoint.searchParams.set('q', query);
+      endpoint.searchParams.set('format', 'json');
+      endpoint.searchParams.set('no_html', '1');
+      endpoint.searchParams.set('skip_disambig', '1');
+      try {
+        const response = await fetch(endpoint);
+        if (!response.ok) throw new Error('Search request failed');
+        const data = await response.json();
+        if (win.isConnected && win.dataset.searchId === requestId) renderSearchResults(win, query, data);
+      } catch {
+        if (win.isConnected && win.dataset.searchId === requestId) renderSearchResults(win, query, {}, 'Search is temporarily unavailable. Check your connection and try again.');
+      }
+    }
+
+    function appContent(app) {
+      if (app === 'files') return `<div class="file-layout"><aside class="file-sidebar"><button class="file-nav selected" data-folder="root">⌂ &nbsp;Home</button><button class="file-nav" data-folder="folder-documents">▤ &nbsp;Documents</button><button class="file-nav" data-folder="folder-downloads">▤ &nbsp;Downloads</button><button class="file-nav" data-folder="folder-pictures">▤ &nbsp;Pictures</button></aside><section class="file-main"><div class="file-toolbar"><button type="button" data-file-action="new-folder">＋ Folder</button><button type="button" data-file-action="new-file">＋ Text file</button><button type="button" data-file-action="upload">↑ Upload</button><button type="button" data-file-action="rename">Rename</button><button type="button" data-file-action="delete">Delete</button><input id="fileUpload" class="hidden" type="file" accept=".txt,.md,.json,.csv,text/plain,application/json,text/csv"><input id="fileSearch" type="search" placeholder="Search this folder" aria-label="Search files"></div><div id="fileBreadcrumb" class="address">Home</div><h3 id="fileHeading">Quick access</h3><div id="fileGrid" class="file-grid"></div><p id="fileEmpty" class="file-empty hidden">This folder is empty.</p><section id="fileEditor" class="file-editor hidden"><textarea id="fileEditorText" aria-label="Text file contents" spellcheck="false"></textarea><div class="file-editor-actions"><button class="all-apps" type="button" data-file-action="save">Save</button><button class="all-apps" type="button" data-file-action="download">Download</button><button class="all-apps" type="button" data-file-action="back">Back to files</button></div></section><small class="file-storage-note">Saved locally in this browser</small></section></div>`;
+      if (app === 'serumos') return `<iframe class="embedded-site-frame" src="https://s3.amazonaws.com/scholarnook/index.html" title="SerumOS desktop" referrerpolicy="no-referrer" sandbox="allow-scripts allow-same-origin allow-forms"></iframe>`;
+      if (app === 'plutonium') return `<iframe class="embedded-site-frame" src="https://plutoniumnet.work/" title="Plutonium Network" referrerpolicy="strict-origin-when-cross-origin" sandbox="allow-scripts allow-same-origin allow-forms"></iframe>`;
+      if (app === 'cloudGaming') return `<div class="cloud-gaming"><header class="cloud-header"><h2>Cloud Gaming</h2><p>Choose a service. Sign-in, subscriptions, and controller support depend on the provider.</p></header><div class="cloud-toolbar"><button id="cloudBack" class="hidden" type="button">‹ &nbsp;Services</button><button id="cloudReload" type="button" aria-label="Reload session">⟳ &nbsp;Reload</button><span id="cloudStatus" class="cloud-status">Choose a service</span></div><div id="cloudServices" class="cloud-services">${Object.entries(cloudGamingServices).map(([key, service]) => `<button class="cloud-service" type="button" data-cloud-service="${key}"><span class="cloud-service-icon">${service.icon}</span><span class="cloud-service-copy"><strong>${service.title}</strong><small>${service.detail}</small></span></button>`).join('')}</div><div id="cloudNotice" class="cloud-notice hidden" role="status"></div><iframe id="cloudPlayer" class="cloud-player hidden" title="Cloud gaming session" allow="fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" sandbox="allow-scripts allow-same-origin allow-forms"></iframe></div>`;
+      if (app === 'browser') return `<div class="browser-page"><div class="browser-toolbar"><button type="button" data-browser-back aria-label="Back" title="Back">←</button><button type="button" data-browser-forward aria-label="Forward" title="Forward">→</button><button type="button" data-browser-home aria-label="Home" title="Home">⌂</button><form class="browser-address-form" aria-label="Address bar"><span>🔒</span><input class="browser-address" type="text" aria-label="Search or enter web address" placeholder="Search or enter web address"><button type="submit" aria-label="Go">↵</button></form><button type="button" data-browser-reader aria-label="Toggle Reader mode" aria-pressed="false" title="Reader mode" disabled>▤</button><button type="button" data-browser-reload aria-label="Reload" title="Reload">⟳</button></div><iframe class="browser-frame hidden" title="Web page" referrerpolicy="strict-origin-when-cross-origin" sandbox="allow-scripts allow-same-origin allow-forms"></iframe><div class="web-content"><div class="web-mark">◉</div><h2>Good afternoon</h2><p>What would you like to explore today?</p><form class="web-search-form"><input class="web-search" type="search" aria-label="Search the web" placeholder="Search the web"><button type="submit" aria-label="Search">⌕</button></form></div></div>`;
+      if (app === 'browser') return `<div class="browser-page"><div class="browser-toolbar"><button type="button" data-browser-back aria-label="Back" title="Back">←</button><button type="button" data-browser-forward aria-label="Forward" title="Forward">→</button><button type="button" data-browser-home aria-label="Home" title="Home">⌂</button><form class="browser-address-form" aria-label="Address bar"><span>🔒</span><input class="browser-address" type="text" aria-label="Search or enter web address" placeholder="Search or enter web address"><button type="submit" aria-label="Go">↵</button></form><button type="button" data-browser-reader aria-label="Toggle Reader mode" aria-pressed="false" title="Reader mode" disabled>▤</button><button type="button" data-browser-reload aria-label="Reload" title="Reload">⟳</button></div><iframe class="browser-frame hidden" title="Web page" referrerpolicy="strict-origin-when-cross-origin" sandbox="allow-scripts allow-same-origin allow-forms"></iframe><div class="web-content"><div class="web-mark">◉</div><h2>Good afternoon</h2><p>What would you like to explore today?</p><form class="web-search-form"><input class="web-search" type="search" aria-label="Search the web" placeholder="Search the web"><button type="submit" aria-label="Search">⌕</button></form></div></div>`;
+      if (app === 'chrome') return `<div class="browser-page chrome-page"><div class="chrome-tabstrip"><div id="chromeTabList" class="chrome-tablist" role="tablist" aria-label="Chrome tabs"></div><button id="chromeNewTab" class="chrome-new-tab" type="button" aria-label="New tab" title="New tab">＋</button></div><div class="browser-toolbar"><button type="button" data-browser-back aria-label="Back" title="Back">←</button><button type="button" data-browser-forward aria-label="Forward" title="Forward">→</button><button type="button" data-browser-home aria-label="Home" title="Home">⌂</button><form class="browser-address-form" aria-label="Address bar"><span>🔒</span><input class="browser-address" type="text" aria-label="Search or enter web address" placeholder="Search or enter web address"><button type="submit" aria-label="Go">↵</button></form><button type="button" data-chrome-bookmark aria-label="Bookmark page" title="Bookmark page" disabled>☆</button><button type="button" data-browser-reader aria-label="Toggle Reader mode" aria-pressed="false" title="Reader mode" disabled>▤</button><button type="button" data-browser-reload aria-label="Reload" title="Reload">⟳</button></div><div id="chromeBookmarks" class="chrome-bookmarks hidden" aria-label="Bookmarks"></div><iframe class="browser-frame hidden" title="Web page" referrerpolicy="strict-origin-when-cross-origin" sandbox="allow-scripts allow-same-origin allow-forms"></iframe><div class="web-content"><div class="web-mark">◉</div><h2>Good afternoon</h2><p>What would you like to explore today?</p><form class="web-search-form"><input class="web-search" type="search" aria-label="Search the web" placeholder="Search the web"><button type="submit" aria-label="Search">⌕</button></form></div></div>`;
+      if (app === 'settings') return `<div class="settings"><section class="settings-content"><h2>Personalization</h2><p class="settings-intro">Change the look and feel of your desktop.</p><h3 class="settings-section-title">Background</h3><div id="wallpaperChoices" class="wallpaper-choices" role="radiogroup" aria-label="Desktop wallpaper"></div><form id="wallpaperUrlForm" class="wallpaper-custom"><input id="wallpaperUrlInput" type="url" inputmode="url" placeholder="https://image.example/wallpaper.jpg" aria-label="Custom wallpaper image URL" required><button type="submit">Apply image</button></form><h3 class="settings-section-title">Accent color</h3><div id="accentChoices" class="accent-choices" aria-label="Accent color choices"></div><div class="setting-row"><span>Transparency effects<small>Frosted taskbar and Start menu</small></span><input id="transparencyToggle" class="switch" type="checkbox" aria-label="Transparency effects"></div><div class="setting-row"><span>Night light<small>Warm tint for the desktop</small></span><input id="nightLightToggle" class="switch" type="checkbox" aria-label="Night light"></div></section></div>`;
+      if (app === 'notes') return `<div class="notepad"><div class="notepad-toolbar"><button type="button" data-note-action="download">Download</button><button type="button" data-note-action="clear">Clear</button><span id="noteCount" class="notepad-status">0 words · 0 characters</span><span id="noteStatus" class="notepad-status">Saved locally</span></div><textarea id="notepadText" aria-label="Notepad" placeholder="Start typing" spellcheck="false"></textarea></div>`;
+      if (app === 'calculator') return `<div style="display:grid;place-content:center;height:100%;background:#f3f6f7"><div style="width:250px;padding:18px;border-radius:8px;background:#fff;box-shadow:0 4px 20px #243b4715"><div id="calcDisplay" style="height:55px;text-align:right;font:600 28px Manrope,sans-serif;overflow:hidden">0</div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px">${['%','CE','C','÷','7','8','9','×','4','5','6','−','1','2','3','+','±','0','.','='].map(key => `<button class="calc-key" style="height:42px;border:0;border-radius:4px;background:${key === '=' ? '#1287ca' : '#edf2f4'};color:${key === '=' ? 'white' : '#26353e'};cursor:pointer">${key}</button>`).join('')}</div></div></div>`;
+      if (app === 'terminal') return `<div style="height:100%;padding:19px;background:#172522;color:#d7e7da;font:12px/1.8 monospace"><div>Windows Terminal</div><br><div>Microsoft Windows [Version 11.0.26100.1]</div><div>(c) Microsoft Corporation. All rights reserved.</div><br><div>C:\Users\Alex&gt; <span contenteditable="true" spellcheck="false" style="outline:none">|</span></div></div>`;
+      if (app === 'store') return `<div class="about"><span style="font-size:38px;color:#2586cb">▦</span><strong>Microsoft Store</strong><p>Your apps and entertainment, all in one place.</p><button class="all-apps" style="padding:9px 15px">Browse apps</button></div>`;
+      if (app === 'photos') return `<div class="about" style="background:linear-gradient(145deg,#edf5f2,#f9f7ec)"><span style="font-size:42px">🌄</span><strong>All your memories, in one place</strong><p>Your photo library is ready for its close-up.</p></div>`;
+      if (app === 'mail') return `<div class="about"><span style="font-size:40px">✉️</span><strong>Mail</strong><p>You're all caught up. Connect an account to see your messages here.</p><button class="all-apps" style="padding:9px 15px">Add account</button></div>`;
+      return `<div class="about"><span style="font-size:39px;color:#1689d2">⊞</span><strong>Windows 11</strong><p>A little desktop for the web. This interactive demo runs entirely in your browser.</p><small>Version 24H2 &nbsp;·&nbsp; Experience pack 1000.26100.1.0</small></div>`;
+    }
+
+    function openApp(app) {
+      setStart(false);
+      document.getElementById('contextMenu').classList.add('hidden');
+      if (!appTitles[app]) app = 'about';
+      const existing = openWindows.get(app);
+      if (existing) { existing.classList.remove('minimized'); existing.style.display = 'flex'; existing.style.zIndex = ++topZ; return existing; }
+      const win = document.createElement('section');
+      win.className = 'window maximized';
+      win.dataset.app = app;
+      win.style.zIndex = ++topZ;
+      win.setAttribute('aria-label', appTitles[app]);
+      win.innerHTML = `<header class="titlebar"><div class="window-title"><button class="app-menu-toggle" type="button" aria-label="Window menu" aria-haspopup="menu" aria-expanded="false" title="Window menu">☰</button><span>${appIcons[app]}</span><span>${appTitles[app]}</span></div><div class="window-controls"><button data-window="minimize" aria-label="Minimize">−</button><button data-window="maximize" aria-label="Maximize" title="Restore or maximize">□</button><button data-window="fullscreen" aria-label="Toggle fullscreen" title="Toggle fullscreen">⛶</button><button class="close" data-window="close" aria-label="Close">×</button></div><nav class="app-dropdown hidden" role="menu"><button type="button" role="menuitem" data-app-action="fullscreen">⛶ &nbsp;Toggle fullscreen</button><button type="button" role="menuitem" data-app-action="maximize">□ &nbsp;Restore or maximize</button><button type="button" role="menuitem" data-app-action="settings">⚙ &nbsp;Settings</button><hr><button type="button" role="menuitem" data-app-action="minimize">− &nbsp;Minimize</button><button type="button" role="menuitem" data-app-action="close">× &nbsp;Close window</button></nav></header><div class="window-body">${appContent(app)}</div>`;
+      windowsHost.append(win);
+      openWindows.set(app, win);
+      updateRunningApps();
+      win.addEventListener('pointerdown', () => win.style.zIndex = ++topZ);
+      win.querySelectorAll('[data-window]').forEach(button => button.addEventListener('click', event => {
+        event.stopPropagation();
+        if (button.dataset.window === 'close') { win.remove(); openWindows.delete(app); updateRunningApps(); }
+        if (button.dataset.window === 'minimize') { win.classList.add('minimized'); win.style.display = 'none'; }
+        if (button.dataset.window === 'maximize') {
+          win.classList.remove('fullscreen');
+          win.classList.toggle('maximized');
+          win.style.zIndex = ++topZ;
+        }
+        if (button.dataset.window === 'fullscreen') {
+          win.classList.toggle('fullscreen');
+          if (!win.classList.contains('fullscreen')) win.style.zIndex = ++topZ;
+        }
+      }));
+      const menuButton = win.querySelector('.app-menu-toggle');
+      const appMenu = win.querySelector('.app-dropdown');
+      menuButton.addEventListener('click', event => {
+        event.stopPropagation();
+        const isOpen = appMenu.classList.toggle('hidden') === false;
+        menuButton.setAttribute('aria-expanded', String(isOpen));
+      });
+      appMenu.addEventListener('click', event => {
+        const action = event.target.closest('[data-app-action]')?.dataset.appAction;
+        if (!action) return;
+        appMenu.classList.add('hidden');
+        menuButton.setAttribute('aria-expanded', 'false');
+        if (action === 'fullscreen') win.classList.toggle('fullscreen');
+        if (action === 'maximize') {
+          win.classList.remove('fullscreen');
+          win.classList.toggle('maximized');
+          win.style.zIndex = ++topZ;
+        }
+        if (action === 'settings') openApp('settings');
+        if (action === 'minimize') {
+          win.classList.add('minimized');
+          win.style.display = 'none';
+        }
+        if (action === 'close') {
+          win.remove();
+          openWindows.delete(app);
+          updateRunningApps();
+        }
+      });
+      win.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && !appMenu.classList.contains('hidden')) {
+          appMenu.classList.add('hidden');
+          menuButton.setAttribute('aria-expanded', 'false');
+          menuButton.focus();
+        }
+      });
+      makeDraggable(win);
+      if (app === 'files') setupFileExplorer(win);
+      if (app === 'notes') setupNotepad(win);
+      if (app === 'settings') setupSettings(win);
+      if (app === 'cloudGaming') setupCloudGaming(win);
+      if (app === 'browser' || app === 'chrome') {
+        const homeMarkup = win.querySelector('.web-content').innerHTML;
+        browserHistories.set(win, { entries: [{ type: 'home', value: '' }], index: 0 });
+        browserHomeMarkup.set(win, homeMarkup);
+        if (app === 'chrome') {
+          const state = { tabs: [], activeId: null };
+          chromeTabStates.set(win, state);
+          state.tabs.push({ id: `chrome-tab-${++chromeTabSequence}`, title: 'New tab', history: getBrowserHistory(win) });
+          state.activeId = state.tabs[0].id;
+          renderChromeTabs(win);
+          win.querySelector('#chromeNewTab').addEventListener('click', () => createChromeTab(win));
+          setupChromeBookmarks(win);
+        }
+        updateBrowserHistoryButtons(win);
+        win.addEventListener('submit', event => {
+          const form = event.target.closest('.browser-address-form, .web-search-form');
+          if (!form) return;
+          event.preventDefault();
+          const value = form.querySelector('input').value;
+          const internal = app === 'chrome' && form.matches('.browser-address-form') ? normalizeChromeInternal(value) : '';
+          const address = form.matches('.browser-address-form') ? normalizeWebAddress(value) : '';
+          if (internal) renderChromeInternal(win, internal);
+          else if (address) navigateBrowser(win, address);
+          else searchInBrowser(value, true, app);
+        });
+        win.querySelector('[data-browser-reader]').addEventListener('click', () => toggleBrowserReader(win));
+        win.querySelector('[data-browser-back]').addEventListener('click', () => restoreBrowserHistory(win, -1));
+        win.querySelector('[data-browser-forward]').addEventListener('click', () => restoreBrowserHistory(win, 1));
+        win.querySelector('[data-browser-home]').addEventListener('click', () => {
+          pushBrowserHistory(win, { type: 'home', value: '' });
+          showBrowserHome(win);
+        });
+        win.querySelector('[data-browser-reload]').addEventListener('click', () => {
+          const frame = win.querySelector('.browser-frame');
+          if (!frame.classList.contains('hidden')) frame.src = frame.src;
+          else if (win.dataset.lastQuery) searchInBrowser(win.dataset.lastQuery);
+        });
+        win.querySelector('.web-search').focus();
+      }
+      if (app === 'calculator') setupCalculator(win);
+      return win;
+    }
+
+    function updateRunningApps() {
+      const host = document.getElementById('runningApps');
+      host.replaceChildren();
+      document.querySelectorAll('.task-center [data-open]').forEach(button => button.classList.toggle('running', openWindows.has(button.dataset.open)));
+      for (const [app, win] of openWindows) {
+        const button = document.createElement('button');
+        button.className = `task-button task-app${win.classList.contains('minimized') ? '' : ' running'}`;
+        button.title = appTitles[app];
+        button.setAttribute('aria-label', appTitles[app]);
+        button.textContent = appIcons[app];
+        button.addEventListener('click', () => {
+          win.classList.remove('minimized'); win.style.display = 'flex'; win.style.zIndex = ++topZ;
+        });
+        host.append(button);
+      }
+    }
+
+    function makeDraggable(win) {
+      const bar = win.querySelector('.titlebar');
+      bar.addEventListener('pointerdown', event => {
+        if (event.target.closest('.window-controls') || win.classList.contains('maximized') || win.classList.contains('fullscreen')) return;
+        const rect = win.getBoundingClientRect();
+        const offsetX = event.clientX - rect.left;
+        const offsetY = event.clientY - rect.top;
+        bar.setPointerCapture(event.pointerId);
+        const move = pointer => {
+          win.style.left = `${Math.max(0, Math.min(innerWidth - 90, pointer.clientX - offsetX))}px`;
+          win.style.top = `${Math.max(0, Math.min(innerHeight - 100, pointer.clientY - offsetY))}px`;
+        };
+        bar.addEventListener('pointermove', move);
+        bar.addEventListener('pointerup', () => bar.removeEventListener('pointermove', move), { once: true });
+      });
+      bar.addEventListener('dblclick', event => {
+        if (event.target.closest('.window-controls')) return;
+        win.classList.remove('fullscreen');
+        win.classList.toggle('maximized');
+        win.style.zIndex = ++topZ;
+      });
+    }
+
+    function setupCalculator(win) {
+      let display = '0';
+      let stored = null;
+      let operator = null;
+      let fresh = true;
+      const output = win.querySelector('#calcDisplay');
+      win.querySelectorAll('.calc-key').forEach(button => button.addEventListener('click', () => {
+        const key = button.textContent;
+        if (/^\d$/.test(key) || key === '.') {
+          display = fresh ? (key === '.' ? '0.' : key) : (key === '.' && display.includes('.') ? display : display + key);
+          fresh = false;
+        } else if (['+','−','×','÷'].includes(key)) { stored = Number(display); operator = key; fresh = true; }
+        else if (key === '=') {
+          const current = Number(display);
+          if (operator === '+') display = String(stored + current);
+          if (operator === '−') display = String(stored - current);
+          if (operator === '×') display = String(stored * current);
+          if (operator === '÷') display = current === 0 ? 'Cannot divide by zero' : String(stored / current);
+          operator = null; fresh = true;
+        } else if (key === 'C' || key === 'CE') { display = '0'; stored = null; operator = null; fresh = true; }
+        else if (key === '±') display = String(-Number(display));
+        else if (key === '%') display = String(Number(display) / 100);
+        output.textContent = display;
+      }));
+      win.addEventListener('keydown', event => {
+        if (event.target.closest('input,textarea,[contenteditable="true"]')) return;
+        let key = event.key;
+        if (key === 'Enter') key = '=';
+        if (key === 'Escape' || key === 'Backspace') key = 'C';
+        if (key === '*') key = '×';
+        if (key === '/') key = '÷';
+        if (key === '-') key = '−';
+        const button = [...win.querySelectorAll('.calc-key')].find(item => item.textContent === key);
+        if (button) { event.preventDefault(); button.click(); }
+      });
+    }
+
+    function setupNotepad(win) {
+      const textarea = win.querySelector('#notepadText');
+      const status = win.querySelector('#noteStatus');
+      const count = win.querySelector('#noteCount');
+      try { textarea.value = localStorage.getItem('desktopNotepad') || ''; } catch {}
+      function updateNotepad() {
+        const words = textarea.value.trim().match(/\S+/g) || [];
+        count.textContent = `${words.length} words · ${textarea.value.length} characters`;
+        try {
+          localStorage.setItem('desktopNotepad', textarea.value);
+          status.textContent = 'Saved locally';
+        } catch {
+          status.textContent = 'Storage full';
+        }
+      }
+      textarea.addEventListener('input', updateNotepad);
+      win.addEventListener('keydown', event => {
+        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
+          event.preventDefault();
+          updateNotepad();
+        }
+      });
+      win.querySelector('[data-note-action="download"]').addEventListener('click', () => {
+        const url = URL.createObjectURL(new Blob([textarea.value], { type: 'text/plain;charset=utf-8' }));
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'notes.txt';
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      });
+      win.querySelector('[data-note-action="clear"]').addEventListener('click', () => {
+        textarea.value = '';
+        updateNotepad();
+        textarea.focus();
+      });
+      updateNotepad();
+    }
+
+    let calendarCursor = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    let selectedCalendarDate = new Date();
+    function renderCalendar() {
+      const year = calendarCursor.getFullYear();
+      const month = calendarCursor.getMonth();
+      document.getElementById('calendarMonth').textContent = calendarCursor.toLocaleDateString([], { month: 'long', year: 'numeric' });
+      const days = document.getElementById('calendarDays');
+      days.replaceChildren();
+      const firstWeekday = new Date(year, month, 1).getDay();
+      const dayCount = new Date(year, month + 1, 0).getDate();
+      for (let blank = 0; blank < firstWeekday; blank++) {
+        const emptyDay = document.createElement('span');
+        emptyDay.className = 'calendar-blank';
+        days.append(emptyDay);
+      }
+      for (let day = 1; day <= dayCount; day++) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'calendar-day';
+        button.textContent = String(day);
+        const isSelected = selectedCalendarDate.getFullYear() === year && selectedCalendarDate.getMonth() === month && selectedCalendarDate.getDate() === day;
+        button.classList.toggle('selected', isSelected);
+        button.setAttribute('aria-pressed', String(isSelected));
+        button.addEventListener('click', () => {
+          selectedCalendarDate = new Date(year, month, day);
+          document.getElementById('calendarSelection').textContent = selectedCalendarDate.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+          renderCalendar();
+        });
+        days.append(button);
+      }
+      document.getElementById('calendarSelection').textContent = selectedCalendarDate.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+    }
+
+    const quickSettingsPanel = document.getElementById('quickSettingsPanel');
+    const calendarPanel = document.getElementById('calendarPanel');
+    const brightnessRange = document.getElementById('brightnessRange');
+    const nightLightQuick = document.getElementById('nightLightQuick');
+    brightnessRange.value = desktopPreferences.brightness;
+    nightLightQuick.checked = desktopPreferences.nightLight;
+    function updateNetworkStatus() {
+      const online = navigator.onLine;
+      const networkState = document.getElementById('networkState');
+      const networkDetails = document.getElementById('networkDetails');
+      const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+      networkState.textContent = online ? 'Online' : 'Offline';
+      const details = [];
+      if (connection?.effectiveType) details.push(connection.effectiveType.toUpperCase());
+      if (Number.isFinite(connection?.downlink)) details.push(`~${connection.downlink} Mbps`);
+      networkDetails.textContent = details.length ? details.join(' · ') : online ? 'Browser reports network available' : 'Check your internet connection';
+    }
+    updateNetworkStatus();
+    window.addEventListener('online', updateNetworkStatus);
+    window.addEventListener('offline', updateNetworkStatus);
+    const browserConnection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    browserConnection?.addEventListener?.('change', updateNetworkStatus);
+    renderCalendar();
+
+    startButton.addEventListener('click', () => setStart(!startPanel.classList.contains('open')));
+    document.getElementById('taskSearch').addEventListener('click', () => setStart(true));
+    document.getElementById('allApps').addEventListener('click', () => { searchInput.value = ''; searchInput.focus(); document.querySelectorAll('.app-shortcut').forEach(button => button.classList.remove('hidden')); });
+    document.getElementById('moreRecent').addEventListener('click', () => notify('You are all caught up.'));
+    document.getElementById('powerButton').addEventListener('click', () => notify('Sleep, shut down, and restart are unavailable in this browser demo.'));
+    document.getElementById('weatherButton').addEventListener('click', () => searchInBrowser('weather forecast'));
+    document.getElementById('quickSettingsButton').addEventListener('click', () => {
+      calendarPanel.classList.add('hidden');
+      quickSettingsPanel.classList.toggle('hidden');
+    });
+    document.getElementById('quickSettingsClose').addEventListener('click', () => quickSettingsPanel.classList.add('hidden'));
+    document.getElementById('calendarButton').addEventListener('click', () => {
+      quickSettingsPanel.classList.add('hidden');
+      calendarPanel.classList.toggle('hidden');
+      renderCalendar();
+    });
+    document.getElementById('calendarPrevious').addEventListener('click', () => {
+      calendarCursor = new Date(calendarCursor.getFullYear(), calendarCursor.getMonth() - 1, 1);
+      renderCalendar();
+    });
+    document.getElementById('calendarNext').addEventListener('click', () => {
+      calendarCursor = new Date(calendarCursor.getFullYear(), calendarCursor.getMonth() + 1, 1);
+      renderCalendar();
+    });
+    brightnessRange.addEventListener('input', () => updateDesktopPreference('brightness', Number(brightnessRange.value)));
+    nightLightQuick.addEventListener('change', () => updateDesktopPreference('nightLight', nightLightQuick.checked));
+    document.addEventListener('keydown', event => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        searchInput.value = '';
+        searchInput.dispatchEvent(new Event('input'));
+        setStart(true);
+        return;
+      }
+      const targetIsEditing = event.target.closest('input,textarea,[contenteditable="true"]');
+      if (event.ctrlKey && event.altKey && !targetIsEditing) {
+        const appShortcuts = { e: 'files', b: 'browser', s: 'settings', c: 'calculator', n: 'notes' };
+        const app = appShortcuts[event.key.toLowerCase()];
+        if (app) { event.preventDefault(); openApp(app); return; }
+      }
+      const visibleWindows = [...openWindows.entries()].filter(([, win]) => win.isConnected && win.style.display !== 'none');
+      const activeEntry = visibleWindows.sort((left, right) => Number(right[1].style.zIndex) - Number(left[1].style.zIndex)).at(0);
+      if (event.key === 'F11' && activeEntry) {
+        event.preventDefault();
+        activeEntry[1].classList.toggle('fullscreen');
+      }
+      if (event.altKey && event.key === 'F4' && activeEntry) {
+        event.preventDefault();
+        const [app, win] = activeEntry;
+        win.remove();
+        openWindows.delete(app);
+        updateRunningApps();
+      }
+    });
+    document.addEventListener('click', event => {
+      const launcher = event.target.closest('[data-open]');
+      if (launcher?.classList.contains('desktop-icon') && draggedDesktopIcon === launcher) {
+        draggedDesktopIcon = null;
+        event.preventDefault();
+        return;
+      }
+      if (launcher) openApp(launcher.dataset.open);
+      if (!event.target.closest('#startPanel, #startButton, #taskSearch') && startPanel.classList.contains('open')) setStart(false);
+      if (!event.target.closest('#quickSettingsPanel, #quickSettingsButton')) quickSettingsPanel.classList.add('hidden');
+      if (!event.target.closest('#calendarPanel, #calendarButton')) calendarPanel.classList.add('hidden');
+      if (!event.target.closest('#contextMenu')) document.getElementById('contextMenu').classList.add('hidden');
+      if (!event.target.closest('.app-dropdown, .app-menu-toggle')) {
+        document.querySelectorAll('.app-dropdown:not(.hidden)').forEach(menu => {
+          menu.classList.add('hidden');
+          menu.closest('.window')?.querySelector('.app-menu-toggle')?.setAttribute('aria-expanded', 'false');
+        });
+      }
+    });
+    searchInput.addEventListener('input', () => {
+      const query = searchInput.value.trim().toLowerCase();
+      document.querySelectorAll('.app-shortcut').forEach(button => button.classList.toggle('hidden', !button.textContent.toLowerCase().includes(query)));
+    });
+    searchInput.addEventListener('keydown', event => {
+      if (event.key === 'Enter') {
+        const query = searchInput.value.trim();
+        const match = [...document.querySelectorAll('.app-shortcut')].find(button => button.textContent.trim().toLowerCase() === query.toLowerCase());
+        if (match) openApp(match.dataset.open);
+        else if (query) searchInBrowser(query);
+      }
+    });
+    desktop.addEventListener('contextmenu', event => {
+      if (event.target.closest('.window, .taskbar, .start-panel')) return;
+      event.preventDefault();
+      const menu = document.getElementById('contextMenu');
+      menu.classList.remove('hidden');
+      menu.style.left = `${Math.min(event.clientX, innerWidth - 190)}px`;
+      menu.style.top = `${Math.min(event.clientY, innerHeight - 150)}px`;
+    });
+    document.getElementById('contextMenu').addEventListener('click', event => {
+      const action = event.target.closest('[data-action]')?.dataset.action;
+      if (action === 'personalize') openApp('settings');
+      if (action === 'about') openApp('about');
+      if (action === 'refresh') { desktop.animate([{ filter: 'brightness(1)' }, { filter: 'brightness(1.14)' }, { filter: 'brightness(1)' }], { duration: 300 }); }
+    });
+
+    let notificationTimer;
+    function notify(message) {
+      const box = document.getElementById('notification');
+      box.textContent = message;
+      box.classList.remove('hidden');
+      clearTimeout(notificationTimer);
+      notificationTimer = setTimeout(() => box.classList.add('hidden'), 3200);
+    }
+
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clockTime').textContent = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+      document.getElementById('clockDate').textContent = now.toLocaleDateString([], { month: 'numeric', day: 'numeric', year: 'numeric' });
+    }
+    updateClock();
+    setInterval(updateClock, 15000);
+  </script>
+</body>
+</html>
